@@ -17,7 +17,18 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         public string TableName { get; set; }
         public string SchemaCatalog { get; set; }
         public List<SchemaTable> ReferencedTables { get; set; } = new List<SchemaTable>();
-        public bool SelfReference { get; set; }
+        public bool HasSelfReference
+        {
+            get
+            {
+                foreach (var foreignKey in ForeignKeys )
+                {
+                    if (foreignKey.IsSelfReference) return true;
+                }
+                return false;
+            }
+        }
+
         public SchemaTable(string tableName)
         {
             TableName = tableName;
@@ -60,17 +71,7 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         {
             CheckConstraints.AddRange(checkConstraints);
         }
-        internal void SelfReferenceCheck()
-        {
-            foreach (var fk in ForeignKeys)
-            {
-                if (fk.ReferencedTable == this.TableName)
-                {
-                    SelfReference = true;
-                    break;
-                }
-            }
-        }
+        
 
         public void AddForeignKey(ForeignKey foreignKey) => ForeignKeys.Add(foreignKey);
         public void AddForeignKey(IEnumerable<ForeignKey> foreignKeys)

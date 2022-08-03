@@ -24,7 +24,7 @@ namespace DatabaseCopierSingle.ScriptCreators
         private static DataInsertScripts CreateInsertDataScriptIntoTable(TableData data)
         {
             DataInsertScripts insertScripts = new DataInsertScripts();
-            if (data.AmmountOfRows == 0) return insertScripts;
+            if (data.AmountOfRows == 0) return insertScripts;
             var tableSchema = data.TableSchema;
             foreach (var dataInterval in data.Data)
             {
@@ -34,7 +34,7 @@ namespace DatabaseCopierSingle.ScriptCreators
 
             return insertScripts;
         }
-        private static string CreateInsertDataIntervalIntoTableScript(SchemaTable table, TableDataRows dataForInsert)
+        private static string CreateInsertDataIntervalIntoTableScript(SchemaTable table, DataRowInterval dataForInsert)
         {
 
             string tableName = table.TableName;

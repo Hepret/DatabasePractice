@@ -18,10 +18,14 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         public string OnUpdate { get; set; }
         public string OnDelete { get; set; }
 
-        public bool IsSelfReference()
+        public bool IsSelfReference
         {
-            return TableName == ReferencedTable;
+            get
+            { 
+                return TableName == ReferencedTable;
+            }
         }
+        
         public override string ToString()
         {
             return  $"\tTable name: {TableName}\n" +

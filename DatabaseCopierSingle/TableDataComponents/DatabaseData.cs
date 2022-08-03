@@ -26,7 +26,7 @@ namespace DatabaseCopierSingle.TableDataComponents
         }
 
 
-        public void AddDataToTable(int tableIndex, List<TableDataRows> dataIntervals)
+        public void AddDataToTable(int tableIndex, List<DataRowInterval> dataIntervals)
         {
             try
             {
@@ -39,18 +39,18 @@ namespace DatabaseCopierSingle.TableDataComponents
 
             }
         }
-        public void AddDataToTable(int tableIndex, TableDataRows rows)
+        public void AddDataToTable(int tableIndex, DataRowInterval rowInterval)
         {
             try
             {
-                TableDatas[tableIndex].AddData(rows);
+                TableDatas[tableIndex].AddData(rowInterval);
             }
             catch (ArgumentOutOfRangeException ex)
             {
                 throw new ArgumentOutOfRangeException($"Can't add data to table, because table with index: {tableIndex} - doesn't exist", ex); 
             }
         }
-        public void AddDataToTable(string tableName, List<TableDataRows> dataIntervals)
+        public void AddDataToTable(string tableName, List<DataRowInterval> dataIntervals)
         {
             var table = Array.Find(TableDatas, t => t.TableSchema.TableName == tableName);
             if (table == null)
@@ -60,7 +60,7 @@ namespace DatabaseCopierSingle.TableDataComponents
 
             AddDataToTable(table, dataIntervals);
         }
-        public void AddDataToTable(string tableName, TableDataRows rows)
+        public void AddDataToTable(string tableName, DataRowInterval rowInterval)
         {
             
             var table = Array.Find(TableDatas, t => t.TableSchema.TableName == tableName);
@@ -68,13 +68,13 @@ namespace DatabaseCopierSingle.TableDataComponents
             {
                 throw new ArgumentException($"Can't add data to table: {tableName}, because it doesn't exist");
             }
-            AddDataToTable(table, rows);
+            AddDataToTable(table, rowInterval);
         }
-        public void AddDataToTable(TableData table, TableDataRows rows)
+        public void AddDataToTable(TableData table, DataRowInterval rowInterval)
         {
-            table.AddData(rows);
+            table.AddData(rowInterval);
         }
-        public void AddDataToTable(TableData table, List<TableDataRows> dataIntervals)
+        public void AddDataToTable(TableData table, List<DataRowInterval> dataIntervals)
         {
             table.AddData(dataIntervals);
         }

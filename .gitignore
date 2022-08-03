@@ -2,3 +2,5 @@ packages/*
 .vs
 DatabaseCopierSingle/bin/*
 DatabaseCopierSingle/obj/*
+.idea
+

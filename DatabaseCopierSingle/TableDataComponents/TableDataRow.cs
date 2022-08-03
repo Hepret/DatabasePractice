@@ -4,7 +4,7 @@ namespace DatabaseCopierSingle
 {
     class TableDataRow : IEnumerable
     {
-        public object[] Data { get; private set; }
+        public object[] Data { get; private set; } // Data from db row
 
         public int ColumnAmmount
         {
@@ -16,7 +16,6 @@ namespace DatabaseCopierSingle
         public object this[int index]
         {
             get => Data[index];
-            //set => rows[index];
         }
 
         public TableDataRow(object[] data)

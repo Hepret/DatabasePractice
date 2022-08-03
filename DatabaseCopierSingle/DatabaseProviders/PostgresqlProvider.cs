@@ -164,15 +164,15 @@ namespace DatabaseCopierSingle.DatabaseProviders
                 throw new Exception($"Can't get PRIMARY KEY for table: {tableName}", ex);
             }
         }
-        protected override TableDataRows GetRangeOfRowsFromTable(FullTableName tableName, int startWith = 0, int ammountOfRows = 100)
+        protected override TableDataRow[] GetRangeOfRowsFromTable(FullTableName tableName, int startWith = 0, int amountOfRows = 100)
         {
             var queryString =
                 $"SELECT *\n" +
                 $"FROM \"{tableName.SchemaCatalogName}\".\"{tableName.TableName}\"\n" +
                 $"OFFSET {startWith}\n" +
-                $"FETCH NEXT {ammountOfRows} ROWS ONLY;";
+                $"FETCH NEXT {amountOfRows} ROWS ONLY;";
 
-            TableDataRow[] dataRows = new TableDataRow[ammountOfRows];
+            TableDataRow[] dataRows = new TableDataRow[amountOfRows];
 
             using (var reader = GetDataReader(queryString))
             {
@@ -184,7 +184,7 @@ namespace DatabaseCopierSingle.DatabaseProviders
                 }
             }
 
-            return new TableDataRows(dataRows);
+            return dataRows;
         }
         protected override List<SchemaSequence> GetSequences()
         {
@@ -287,7 +287,7 @@ namespace DatabaseCopierSingle.DatabaseProviders
         }
         protected override List<FullTableName> GetTableNames()
         {
-            DataTable schema = conn.GetSchema("Tables");
+            DataTable schema = Conn.GetSchema("Tables");
             var tableNames = new List<FullTableName>();
             foreach (DataRow row in schema.Rows)
             {
@@ -407,14 +407,14 @@ namespace DatabaseCopierSingle.DatabaseProviders
         {
             try
             {
-                var cmd = conn.CreateCommand();
+                var cmd = Conn.CreateCommand();
                 cmd.CommandText = command;
                 var res = (int)(long)cmd.ExecuteScalar();
                 return res;
             }
             catch (Exception e)
             {
-                conn.Close();
+                Conn.Close();
                 throw new Exception($"Invalid Operation:\n {command}", e);
             }
         }

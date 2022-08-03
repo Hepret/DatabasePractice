@@ -1,4 +1,4 @@
-﻿/*using DatabaseCopierSingle.DatabaseCopiers;
+﻿using DatabaseCopierSingle.DatabaseCopiers;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.ScriptCreators;
 using Npgsql;
@@ -12,52 +12,29 @@ using System.Threading.Tasks;
 
 namespace DatabaseCopierSingle
 {
-    public static class DefaultStringTranslator
-    {
-        *//*public string Translate(string defaultValue)
-        {
-            Stack<string> stack = new Stack<string>();
-            List<string> operationList = new List<string>();
-            for
-
-        }
-        private string MakeCast(string expression, string type)
-        {
-            return $"CAST ({expression} AS {type})";
-        }*//*
-    }
     class Program
     {
         
         static void Main(string[] args)
         {
-            var databaseName = "holding_auctions";
+            //var databaseName = "holding_auctions";
+            var databaseName = "dwd";
             var connectionString = $"Host = localhost; Username = postgres; Password = xlife33xlife33; Database = {databaseName}";
             var connectionStringTo = $"Host = localhost; Username = postgres; Password = xlife33xlife33;";
             const string connection_str = "Server=(localdb)\\mssqllocaldb;Integrated Security=SSPI; pooling=false; database=Lol";
             const string connection_str2 = "Server=(localdb)\\mssqllocaldb;Integrated Security=SSPI; pooling=false";
-
-
-            var copier = new CopyMSSQLToMSSQL(connection_str, connection_str2)
-            {
-                CreateNewDatabase = true,
-                NewDatabaseName = "dwd"
-            };
-
-            var copier2 = new CopyPostresqlToPostgresql(connectionString, connectionStringTo)
-            {
-                CreateNewDatabase = true,
-                NewDatabaseName = "dwd"
-            };
-
+            const  string testConnectionStringToSelfReference = "Host = localhost; Username = postgres; Password = xlife33xlife33; Database = self_reference_test";
             try
             {
-                *//*var provider = new PostgresqlProvider(connectionString);
-                var schema = provider.GetDatabaseSchema();
-                var script = CreatorScriptsFromSchemaPostgresqlToPostgresql.CreateScript(schema);*//*
+                var copier = new CopyPostresqlToPostgresql(connectionString, connectionStringTo)
+                {
+                    CreateNewDatabase = true,
+                    NewDatabaseName = "DeleteMe"
+                };
+                copier.CopySchema();
+                copier.CopyData();
 
-                copier2.CopySchema();
-                copier2.CopyData();
+
             }
             catch (Exception e)
             {
@@ -79,4 +56,3 @@ namespace DatabaseCopierSingle
 
     }
 }
-*/

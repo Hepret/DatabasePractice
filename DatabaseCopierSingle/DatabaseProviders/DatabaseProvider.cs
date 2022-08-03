@@ -4,41 +4,38 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniqueConstraint = DatabaseCopierSingle.DatabaseTableComponents.UniqueConstraint;
 
 namespace DatabaseCopierSingle.DatabaseProviders
 {
     abstract class DatabaseProvider : IScanSchema, ISetSchema, IScanData, ISendData
     {
-        protected DbConnection conn;
-        //protected SchemaDatabase schema;
-        public DatabaseProvider(DbConnection connection)
+        protected readonly DbConnection Conn;
+
+        protected DatabaseProvider(DbConnection connection)
         {
-            conn = connection;
+            Conn = connection;
             try
             {
-                conn.Open();
+                Conn.Open();
                 
             }
             catch (Exception e)
             {
-                conn.Close(); 
-                throw new Exception($"Can't connect to database, with connection string {conn.ConnectionString}", e);
+                Conn.Close(); 
+                throw new Exception($"Can't connect to database, with connection string {Conn.ConnectionString}", e);
             }
         }
         public void ChangeDatabase(string databaseName)
         {
             try
             {
-                if (conn.State == ConnectionState.Closed) conn.Open();
-                conn.ChangeDatabase(databaseName);
+                if (Conn.State == ConnectionState.Closed) Conn.Open();
+                Conn.ChangeDatabase(databaseName);
             }
             catch (DbException e)
             {
-                conn.Close();
+                Conn.Close();
                 throw new Exception($"Can't change database to: {databaseName}", e);
             }
         }
@@ -46,26 +43,26 @@ namespace DatabaseCopierSingle.DatabaseProviders
         {
             try
             {
-                var cmd = conn.CreateCommand();
+                var cmd = Conn.CreateCommand();
                 cmd.CommandText = command;
                 cmd.ExecuteNonQuery();
             }
             catch (Exception e)
             {
-                conn.Close();
+                Conn.Close();
                 throw new Exception($"Invalid Operation:\n {command}", e);
             }
             
         }
         protected abstract int ExecuteCommandScalar(string command);
-        public void CreateNewDatabase(string databaseNama)
+        public void CreateNewDatabase(string databaseName)
         {
-            var queryString = $"CREATE DATABASE {databaseNama};";
+            var queryString = $"CREATE DATABASE {databaseName};";
             ExecuteCommand(queryString);
         }
         public string GetDatabaseName()
         {
-            return conn.Database;
+            return Conn.Database;
         }
 
         // GETTING SCHEMA 
@@ -78,7 +75,7 @@ namespace DatabaseCopierSingle.DatabaseProviders
                 var sequences = GetSequences();
                 SchemaDatabase schema = new SchemaDatabase(
                     schemas: schemasNames,
-                    databaseName: conn.Database,
+                    databaseName: Conn.Database,
                     tables: tables,
                     sequences: sequences
                     ) ; 
@@ -86,10 +83,10 @@ namespace DatabaseCopierSingle.DatabaseProviders
             }
             catch (Exception ex)
             {
-                throw new Exception($"Can't get schema: {conn.Database}", ex);
+                throw new Exception($"Can't get schema: {Conn.Database}", ex);
             }
         }
-        abstract protected List<string> GetSchemasNames();
+        protected abstract List<string> GetSchemasNames();
         private List<SchemaTable> GetTables()
         {
             List<FullTableName> tableNames = GetTableNames();
@@ -130,7 +127,8 @@ namespace DatabaseCopierSingle.DatabaseProviders
 
         }
         protected abstract List<SchemaSequence> GetSequences();
-        protected List<UniqueConstraint> GetUniques(FullTableName tableName)
+
+        private List<UniqueConstraint> GetUniques(FullTableName tableName)
         {
             List<string> uniqueNames = GetUniqueConstraintNames(tableName);
 
@@ -142,7 +140,6 @@ namespace DatabaseCopierSingle.DatabaseProviders
                 {
                     uniques.Add(GetUnique(uniqueName, tableName));
                 }
-
             }
             catch (Exception ex)
             {
@@ -162,11 +159,11 @@ namespace DatabaseCopierSingle.DatabaseProviders
         {
             ExecuteCommand(queryStringForCreateSchema);
         }
-        // SENDDING DATA
+        // SENDING DATA
         public void SetData(string queryStringToInsertData)
         {
             if (queryStringToInsertData != null)
-            ExecuteCommand(queryStringToInsertData);
+                ExecuteCommand(queryStringToInsertData);
         }
         public void SetData(IEnumerable<string> queryStringsForInsertData)
         {
@@ -182,46 +179,75 @@ namespace DatabaseCopierSingle.DatabaseProviders
             DatabaseData databaseData = new DatabaseData(schema);
             foreach (var table in databaseData.TableDatas)
             {
-                GetDataFromTable(table);
+                // Empty Test
+                var amountOfRowsInTheTable = GetNumberOfRowsInTheTable(table.TableSchema.FullTableName);
+                if (amountOfRowsInTheTable == 0) continue;
+                
+                // Self Referencing 
+                if (table.TableSchema.HasSelfReference) GetDataFromTableWithSelfReference(table, amountOfRowsInTheTable);
+                
+                // Usual Tables
+                GetDataFromTable(table, amountOfRowsInTheTable);
             }
             return databaseData;
         }
-        protected void GetDataFromTable(TableData table)
+
+        // TODO GetDataFromTableWithSelfReference
+        private void GetDataFromTableWithSelfReference(TableData table, int amountOfRows)
+        {
+            throw new NotImplementedException();
+            var fullTableName = table.TableSchema.FullTableName;
+        }
+
+        private void GetDataFromTable(TableData table, int amountOfRows)
         {
             var tableName = table.TableSchema.FullTableName;
-            var ammountOfRows = GetNumberOfRowsInTheTable(tableName);
-            if (ammountOfRows == 0) return;
-            for (int i = 0; i <= ammountOfRows / 100; i++)
+            for (int i = 0; i <= amountOfRows / 100; i++)
             {
-                int rowsAmmountToGet = i == (ammountOfRows / 100) ? ammountOfRows % 100 : 100;
-                var rangeOfRows = GetRangeOfRowsFromTable(tableName, i * 100, rowsAmmountToGet);
+                int rowsAmountToGet = i == (amountOfRows / 100) ? amountOfRows % 100 : 100;
+                var rangeOfRows = GetRangeOfRowsFromTable(tableName, i * 100, rowsAmountToGet);
                 table.AddData(rangeOfRows);
             }
         }
+        
+        // TODO DELETE
+        /*protected void GetDataFromTable(TableData table)
+        {
+            var tableName = table.TableSchema.FullTableName;
+            var amountOfRows = GetNumberOfRowsInTheTable(tableName);
+            if (amountOfRows == 0) return;
+            for (int i = 0; i <= amountOfRows / 100; i++)
+            {
+                int rowsAmountToGet = i == (amountOfRows / 100) ? amountOfRows % 100 : 100;
+                var rangeOfRows = GetRangeOfRowsFromTable(tableName, i * 100, rowsAmountToGet);
+                table.AddData(rangeOfRows);
+            }
+        }*/
+        
         protected DbDataReader GetDataReader(string queryString)
         {
             try
             {
-                var cmd = conn.CreateCommand();
+                var cmd = Conn.CreateCommand();
                 cmd.CommandText = queryString;
                 var reader = cmd.ExecuteReader();
                 return reader;  
             }
             catch (Exception e)
             {
-                conn.Close();
+                Conn.Close();
                 throw new Exception($"Invalid Operation:\n {queryString}", e);
             }
         }
         protected TableDataRow GetDataRowFromReader(DbDataReader reader)
         {
-            var ammountOfColumns = reader.FieldCount;
-            object[] tmp = new object[ammountOfColumns];
+            var amountOfColumns = reader.FieldCount;
+            object[] tmp = new object[amountOfColumns];
             reader.GetValues(tmp);
             TableDataRow row = new TableDataRow((object[])tmp.Clone());
             return row;
         }
-        protected abstract TableDataRows GetRangeOfRowsFromTable(FullTableName tableName, int startWith = 0, int ammountOfRows = 100);
+        protected abstract TableDataRow[] GetRangeOfRowsFromTable(FullTableName tableName, int startWith = 0, int amountOfRows = 100);
         protected abstract int GetNumberOfRowsInTheTable(FullTableName tableName);
         public abstract void CreateSchema(string schemaName);
         

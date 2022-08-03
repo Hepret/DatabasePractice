@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C6CD2D0C-F450-447A-B7A2-CEF91BC06487}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>DatabaseCopierSingle</RootNamespace>
     <AssemblyName>DatabaseCopierSingle</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -95,7 +95,6 @@
     <Compile Include="DatabaseCopiers\DatabaseCopier.cs" />
     <Compile Include="DatabaseCopiers\CopyPostresqlToPostgresql.cs" />
     <Compile Include="DatabaseProviders\DatabaseProvider.cs" />
-    <Compile Include="DatabaseProviders\DataScanner.cs" />
     <Compile Include="DatabaseProviders\IScanData.cs" />
     <Compile Include="DatabaseProviders\IScanSchema.cs" />
     <Compile Include="DatabaseProviders\ISendData.cs" />
@@ -119,12 +118,11 @@
     <Compile Include="DatabaseTableComponents\UniqueConstraint.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SchemaScanner.cs" />
     <Compile Include="ScriptCreators\DataInsertScripts.cs" />
     <Compile Include="ScriptCreators\TypesFromMSSQLtoPostgresql.cs" />
     <Compile Include="TableDataComponents\DatabaseData.cs" />
     <Compile Include="TableDataComponents\TableData.cs" />
-    <Compile Include="TableDataComponents\TableDataRows.cs" />
+    <Compile Include="TableDataComponents\DataRowInterval.cs" />
     <Compile Include="TableDataComponents\TableDataRow.cs" />
   </ItemGroup>
   <ItemGroup>

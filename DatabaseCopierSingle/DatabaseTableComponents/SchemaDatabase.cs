@@ -70,7 +70,7 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
             {
                 foreach (var fk in table.ForeignKeys)
                 {
-                    if (fk.IsSelfReference()) continue;
+                    if (fk.IsSelfReference) continue;
                     else
                     {
                         var referencedTable = tables.Where(t => t.TableName == fk.ReferencedTable).FirstOrDefault();
@@ -103,12 +103,6 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
                 orderedTables.Add(table);
             }
         }
-        private void SelfReferencingCheck()
-        {
-            foreach (var table in Tables)
-            {
-                table.SelfReferenceCheck();
-            }
-        }
+        
     }
 }

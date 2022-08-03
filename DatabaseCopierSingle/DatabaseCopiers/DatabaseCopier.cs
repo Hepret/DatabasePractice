@@ -15,7 +15,14 @@ namespace DatabaseCopierSingle
         protected DatabaseProvider providerTo;
         protected SchemaDatabase schema;
         protected DatabaseData databaseData;
-        public string NewDatabaseName { get; set; }
+
+        private string _newDatabaseName;
+        public string NewDatabaseName
+        {
+            get => _newDatabaseName;
+            set => _newDatabaseName = value.ToLower();
+        }
+
         public bool CreateNewDatabase { get; set; } = false;
 
         public void CopySchema()
