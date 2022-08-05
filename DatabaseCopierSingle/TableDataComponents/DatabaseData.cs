@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 
 namespace DatabaseCopierSingle.TableDataComponents
 {
-    class DatabaseData : IEnumerable
+    public class DatabaseData : IEnumerable
     {
-        public TableData[] TableDatas { get; private set; }
-        public SchemaDatabase DatabaseShchema { get; private set; }
+        public TableData[] TableData { get; private set; }
+        public SchemaDatabase DatabaseSchema { get; private set; }
         public DatabaseData(SchemaDatabase schemaDatabase)
         {
-            DatabaseShchema = schemaDatabase;
-            var ammountOfTables = schemaDatabase.Tables.Count;
-            TableDatas = new TableData[ammountOfTables];
-            for (int i = 0; i < ammountOfTables; i++)
+            DatabaseSchema = schemaDatabase;
+            var amountOfTables = schemaDatabase.Tables.Count;
+            TableData = new TableData[amountOfTables];
+            for (var i = 0; i < amountOfTables; i++)
             {
                 var tableSchema = schemaDatabase.Tables[i];
-                TableDatas[i] = new TableData(tableSchema);
+                TableData[i] = new TableData(tableSchema);
             }
 
         }
@@ -30,7 +30,7 @@ namespace DatabaseCopierSingle.TableDataComponents
         {
             try
             {
-                var table = TableDatas[tableIndex];
+                var table = TableData[tableIndex];
                 AddDataToTable(table, dataIntervals);
             }
             catch (ArgumentOutOfRangeException ex)
@@ -43,7 +43,7 @@ namespace DatabaseCopierSingle.TableDataComponents
         {
             try
             {
-                TableDatas[tableIndex].AddData(rowInterval);
+                TableData[tableIndex].AddData(rowInterval);
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -52,7 +52,7 @@ namespace DatabaseCopierSingle.TableDataComponents
         }
         public void AddDataToTable(string tableName, List<DataRowInterval> dataIntervals)
         {
-            var table = Array.Find(TableDatas, t => t.TableSchema.TableName == tableName);
+            var table = Array.Find(TableData, t => t.TableSchema.TableName == tableName);
             if (table == null)
             {
                 throw new ArgumentException($"Can't add data to table: {tableName}, because it doesn't exist");
@@ -63,7 +63,7 @@ namespace DatabaseCopierSingle.TableDataComponents
         public void AddDataToTable(string tableName, DataRowInterval rowInterval)
         {
             
-            var table = Array.Find(TableDatas, t => t.TableSchema.TableName == tableName);
+            var table = Array.Find(TableData, t => t.TableSchema.TableName == tableName);
             if (table == null)
             {
                 throw new ArgumentException($"Can't add data to table: {tableName}, because it doesn't exist");
@@ -78,13 +78,11 @@ namespace DatabaseCopierSingle.TableDataComponents
         {
             table.AddData(dataIntervals);
         }
-        public TableData this[int index]
-        {
-            get => TableDatas[index];
-        }
+        public TableData this[int index] => TableData[index];
+
         public IEnumerator GetEnumerator()
         {
-            return TableDatas.GetEnumerator();
+            return TableData.GetEnumerator();
         }
     }
 }

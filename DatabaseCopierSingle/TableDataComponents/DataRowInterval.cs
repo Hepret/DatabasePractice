@@ -4,9 +4,8 @@ using System.Linq;
 
 namespace DatabaseCopierSingle.TableDataComponents
 {
-    class DataRowInterval
+    public class DataRowInterval
     {
-        //readonly TableDataRow[] rows;
         private List<TableDataRow> DataInterval { get;  set; } = new List<TableDataRow>();
         public const int MaxRows = 100;
         

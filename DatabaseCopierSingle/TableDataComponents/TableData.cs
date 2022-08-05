@@ -1,17 +1,12 @@
-﻿using DatabaseCopierSingle.DatabaseTableComponents;
-using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using DatabaseCopierSingle.TableDataComponents;
+using DatabaseCopierSingle.DatabaseTableComponents;
 
-namespace DatabaseCopierSingle
+namespace DatabaseCopierSingle.TableDataComponents
 {
    
-    class TableData : IEnumerable
+    public class TableData : IEnumerable
     {
         public List<DataRowInterval> Data { get; private set; }
         public SchemaTable TableSchema { get; private set; }
@@ -19,20 +14,12 @@ namespace DatabaseCopierSingle
         {
             get
             {
-                int res = 0;
-                foreach (var dataRows in Data)
-                {
-                    res += dataRows.Count;
-                }
-                return res;
+                return Data.Sum(dataRows => dataRows.Count);
             }
         }
-        public DataRowInterval this[int index]
-        {
-            get => Data[index];
-        }
+        public DataRowInterval this[int index] => Data[index];
 
-        public TableData()
+        private TableData()
         { 
             Data = new List<DataRowInterval>();
         }
@@ -79,7 +66,6 @@ namespace DatabaseCopierSingle
                 {
                     Data.Add(new DataRowInterval());
                     lastDataInterval.AddRow(dataInterval.Skip(counter).Take(freeSpace));
-                    lastDataInterval = Data.Last();
                     counter += freeSpace;
                 }
 

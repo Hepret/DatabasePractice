@@ -1,31 +1,26 @@
 ﻿using System.Collections;
+using System.Linq;
+using DatabaseCopierSingle.DatabaseTableComponents;
 
-namespace DatabaseCopierSingle
+namespace DatabaseCopierSingle.TableDataComponents
 {
-    class TableDataRow : IEnumerable
+    public class TableDataRow : IEnumerable
     {
-        public object[] Data { get; private set; } // Data from db row
+        private object[] Data { get; set; } // Data from db row
+        private SchemaTable SchemaTable { get; set; }
+        public int ColumnAmount => Data.Length;
 
-        public int ColumnAmmount
-        {
-            get
-            {
-                return Data.Length;
-            }
-        }
-        public object this[int index]
-        {
-            get => Data[index];
-        }
+        public object this[string columnName] =>
+            Data[SchemaTable.Columns.Where(column => column.Column_name == columnName)
+                .Select(column => int.Parse(column.Ordinal_position)-1)
+                .First()];
+        public object this[int index] => Data[index];
 
-        public TableDataRow(object[] data)
+        public TableDataRow(object[] data, SchemaTable schema)
         {
             Data = data;
+            SchemaTable = schema;
         }
-
-        public IEnumerator GetEnumerator()
-        {
-            return Data.GetEnumerator();
-        }
+        public IEnumerator GetEnumerator() => Data.GetEnumerator();
     }
 }
