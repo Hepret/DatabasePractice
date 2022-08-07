@@ -6,7 +6,7 @@ using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema
 {
-    public class CreateTablesScripts : IEnumerable
+    public class CreateTablesScripts : IEnumerable<CreateTableScript>
     {
         private readonly List<SchemaTable> _tables;
         private CreateTableScript[] Scripts { get;}
@@ -26,9 +26,15 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema
         public CreateTableScript this[int index] => Scripts[index];
         public CreateTableScript this[FullTableName fullTableName] => Scripts.First(t => t.FullTableName.Equals(fullTableName));
 
-        public IEnumerator GetEnumerator()
+
+        public IEnumerator<CreateTableScript> GetEnumerator()
         {
-            return  Scripts.GetEnumerator();
+            return ((IEnumerable<CreateTableScript>) Scripts).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

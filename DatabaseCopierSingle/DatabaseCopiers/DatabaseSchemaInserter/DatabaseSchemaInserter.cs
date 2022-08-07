@@ -1,34 +1,34 @@
 ﻿using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
-namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaSender
+namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
 {
-    public class DatabaseSchemaSender : ISetDatabaseSchema
+    public class DatabaseSchemaInserter : IInsertDatabaseSchema
     {
         private readonly DatabaseProvider _provider;
-        public bool NeedToCreateDatabase { get; set; } = false;
-
-        public DatabaseSchemaSender(DatabaseProvider provider)
+        private bool NeedToCreateDatabase { get; set; } = false;
+        public DatabaseSchemaInserter(DatabaseProvider provider)
         {
             _provider = provider;
         }
-
-        public void SetSchema(ScriptForSetSchema scriptForSetSchema)
+        public DatabaseSchemaInserter(DatabaseProvider provider, bool needToCreateDatabase) : this(provider)
         {
-            CreateDatabase(scriptForSetSchema.CreateDatabaseScript);
-            CreateSchemas(scriptForSetSchema.CreateSchemasScripts);
-            CreateSequences(scriptForSetSchema.CreateSequencesScripts);
-            CreateTables(scriptForSetSchema.CreateTablesScripts);
+            NeedToCreateDatabase = needToCreateDatabase;
         }
-
+        public void SetSchema(CreateDatabaseSchemaScript createDatabaseSchemaScript)
+        {
+            CreateDatabase(createDatabaseSchemaScript.CreateDatabaseScript);
+            CreateSchemas(createDatabaseSchemaScript.CreateSchemasScripts);
+            CreateSequences(createDatabaseSchemaScript.CreateSequencesScripts);
+            CreateTables(createDatabaseSchemaScript.CreateTablesScripts);
+        }
         private void CreateTables(CreateTablesScripts createTablesScripts)
         {
-            foreach (var createTablesScript in createTablesScripts)
+            foreach (CreateTableScript createTableScripts in createTablesScripts)
             {
-                _provider.ExecuteCommand((string)createTablesScript);
+                _provider.ExecuteCommand(createTableScripts.Script);
             }
         }
-
         private void CreateSequences(string[] createSequencesScripts)
         {
             foreach (var createSequencesScript in createSequencesScripts)
@@ -36,14 +36,12 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaSender
                 _provider.ExecuteCommand(createSequencesScript);
             }
         }
-
         private void CreateDatabase(CreateDatabaseScript createDatabaseScript)
         {
             if (NeedToCreateDatabase) _provider.ExecuteCommand(createDatabaseScript.Script);
             var databaseNameNew = createDatabaseScript.DatabaseName;
             _provider.ChangeDatabase(databaseNameNew);
         }
-
         private void CreateSchemas(string[] createSchemasScript)
         {
             foreach (var createSchemaScript in createSchemasScript)

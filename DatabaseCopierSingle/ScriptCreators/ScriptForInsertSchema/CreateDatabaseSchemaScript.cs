@@ -6,10 +6,10 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema
     {
         private readonly SchemaDatabase _schemaDatabase;
 
-        public CreateDatabaseSchemaScript(SchemaDatabase schemaDatabase)
+        public CreateDatabaseSchemaScript(SchemaDatabase schemaDatabase, string databaseNewName)
         {
             this._schemaDatabase = schemaDatabase;
-            CreateDatabaseScript = new CreateDatabaseScript(schemaDatabase.DatabaseName);
+            CreateDatabaseScript = new CreateDatabaseScript(databaseNewName);
             CreateSchemasScripts = new string[schemaDatabase.Schemas.Count];
             CreateSequencesScripts = new string[schemaDatabase.Sequences.Count];
             CreateTablesScripts = new CreateTablesScripts(_schemaDatabase.Tables);
