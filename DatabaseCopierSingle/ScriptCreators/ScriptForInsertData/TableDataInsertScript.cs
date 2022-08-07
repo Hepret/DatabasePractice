@@ -1,39 +1,38 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertData
 {
-    public class InsertDataInTableScript : IEnumerable
+    public class TableDataInsertScript : IEnumerable
     {
         private readonly SchemaTable _schemaTable;
-
-        public string TableName => _schemaTable.TableName;
-
-        private List<string> InsertDataInScripts { get; set; }
+        public FullTableName FullTableName => _schemaTable.FullTableName;
+        public List<string> Scripts { get; private set; }
         
-        public InsertDataInTableScript(SchemaTable schemaTable)
+        public TableDataInsertScript(SchemaTable schemaTable)
         {
             _schemaTable = schemaTable;
-            InsertDataInScripts = new List<string>();
+            Scripts = new List<string>();
         }
 
-        public string this[int index] => InsertDataInScripts[index];
+        public string this[int index] => Scripts[index];
 
 
         public void AddScript(string script)
         {
-            InsertDataInScripts.Add(script);
+            Scripts.Add(script);
         }
 
         public void AddScripts(IEnumerable<string> scripts)
         {
-            InsertDataInScripts.AddRange(scripts);
+            Scripts.AddRange(scripts);
         }
 
         public IEnumerator GetEnumerator()
         {
-            return InsertDataInScripts.GetEnumerator();
+            return Scripts.GetEnumerator();
         }
     }
 }
