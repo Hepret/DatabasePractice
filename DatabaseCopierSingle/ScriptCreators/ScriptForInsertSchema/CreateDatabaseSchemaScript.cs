@@ -1,13 +1,12 @@
-﻿using System;
-using DatabaseCopierSingle.DatabaseTableComponents;
+﻿using DatabaseCopierSingle.DatabaseTableComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema
 {
-    public class ScriptForSetSchema
+    public class CreateDatabaseSchemaScript
     {
         private readonly SchemaDatabase _schemaDatabase;
 
-        public ScriptForSetSchema(SchemaDatabase schemaDatabase)
+        public CreateDatabaseSchemaScript(SchemaDatabase schemaDatabase)
         {
             this._schemaDatabase = schemaDatabase;
             CreateDatabaseScript = new CreateDatabaseScript(schemaDatabase.DatabaseName);

@@ -4,33 +4,84 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
 namespace DatabaseCopierSingle.ScriptCreators
 {
-    class CreatorScriptsFromSchemaPostgresqlToMSSQL
-    {
-        public static string CreateDatabase(SchemaDatabase schema)
+    class CreatorScriptsFromSchemaPostgresqlToMssql
+    { 
+        public static CreateDatabaseSchemaScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase)
+        {
+            var script = new ScriptForInsertSchema.CreateDatabaseSchemaScript(schemaDatabase)
+             {
+                 CreateDatabaseScript = new CreateDatabaseScript(schemaDatabase.DatabaseName)
+                 {
+                     Script = CreateDatabase(schemaDatabase)
+                 },
+                 CreateSchemasScripts = CreateSchemas(schemaDatabase.Schemas),
+                 CreateSequencesScripts = CreateSequences(schemaDatabase.Sequences),
+                 CreateTablesScripts = CreateTables(schemaDatabase.Tables)
+             };
+            return script;
+        }
+
+        #region Creating Database
+        private static string CreateDatabase(SchemaDatabase schema)
         {
             return $"CREATE DATABASE {schema.DatabaseName}";
         }
-
-        public static string CreateTableConstraintsSequences(SchemaDatabase schema)
+        #endregion
+        
+        #region Creating Schemas
+        private static string[] CreateSchemas(List<string> schemaDatabaseSchemas)
         {
-            StringBuilder CreateCmdStr = new StringBuilder();
-            CreateCmdStr.AppendLine(CreateSequences(schema.Sequences)); // add seq
-            CreateCmdStr.AppendLine(CreateTables(schema.Tables)); // tables include constraints
-            return CreateCmdStr.ToString();
-        }
-
-        private static string CreateTables(List<SchemaTable> tables)
-        {
-            string[] createTablesArr = new string[tables.Count]; // set of create seq commands
-            for (int i = 0; i < tables.Count; i++)
+            var createSchemasScripts = new string[schemaDatabaseSchemas.Count];
+            for (int i = 0; i < schemaDatabaseSchemas.Count; i++)
             {
-                createTablesArr[i] = CreateTable(tables[i]);
+                var template = $"CREATE SCHEMA {schemaDatabaseSchemas[i]}";
+                createSchemasScripts[i] = template;
             }
-            string createTablesStr = string.Join("\n", createTablesArr);
-            return createTablesStr;
+
+            return createSchemasScripts;
+        }
+        #endregion
+
+        #region Creating Sequences
+        private static string[] CreateSequences(List<SchemaSequence> sequences)
+         {
+             string[] createSequenceArr = new string[sequences.Count]; // Array of create seq commands
+             for (int i = 0; i < sequences.Count; i++)
+             {
+                 createSequenceArr[i] = CreateSequence(sequences[i]);
+             }
+             return createSequenceArr;
+         }
+        private static string CreateSequence(SchemaSequence sequence)
+         {
+             var createSequenceStr =
+                 $"CREATE SEQUENCE {sequence.Sequence_name} " +
+                 $"INCREMENT BY {sequence.Increment} " +
+                 $"MINVALUE {sequence.Minimum_value} " +
+                 $"MAXVALUE {sequence.Maximum_value} " +
+                 $"START WITH {sequence.Start_vlaue};";
+ 
+             return createSequenceStr;
+         }
+        #endregion
+
+        #region Createing Tables
+
+        private static CreateTablesScripts CreateTables(List<SchemaTable> tables)
+        {
+            var createTablesScripts = new CreateTablesScripts(tables);
+
+            for (var i = 0; i < createTablesScripts.Count; i++)
+            {
+                var script = CreateTable(tables[i]);
+                createTablesScripts[i].Script = script;
+            }
+
+            return createTablesScripts;
         }
         private static string CreateTable(SchemaTable table)
         {
@@ -51,6 +102,18 @@ namespace DatabaseCopierSingle.ScriptCreators
             createTableStr.AppendLine("\n);");
             return createTableStr.ToString();
         }
+        
+        
+
+        #endregion
+        public static string CreateTableConstraintsSequences(SchemaDatabase schema)
+        {
+             StringBuilder CreateCmdStr = new StringBuilder();
+             CreateCmdStr.AppendLine(CreateSequences(schema.Sequences)); // add seq
+             CreateCmdStr.AppendLine(CreateTables(schema.Tables)); // tables include constraints
+             return CreateCmdStr.ToString();
+        }
+    
 
         private static string CreateColumns(List<SchemaColumn> schemaColumns)
         {
@@ -63,29 +126,7 @@ namespace DatabaseCopierSingle.ScriptCreators
             string columns = string.Join(",\n", columnArr);
             return columns;
         }
-        private static string CreateSequences(List<SchemaSequence> sequences)
-        {
-            string[] createSequanceArr = new string[sequences.Count]; // set of create seq commands
-            for (int i = 0; i < sequences.Count; i++)
-            {
-                createSequanceArr[i] = CreateSequence(sequences[i]);
-            }
-
-            string createSequencesStr = string.Join("\n", createSequanceArr);
-
-            return createSequencesStr;
-        }
-        private static string CreateSequence(SchemaSequence sequence)
-        {
-            var createSequenceStr =
-                $"CREATE SEQUENCE {sequence.Sequence_name} " +
-                $"INCREMENT BY {sequence.Increment} " +
-                $"MINVALUE {sequence.Minimum_value} " +
-                $"MAXVALUE {sequence.Maximum_value} " +
-                $"START WITH {sequence.Start_vlaue};";
-
-            return createSequenceStr;
-        }
+        
         private static string CreateUnique(List<UniqueConstraint> uniques)
         {
             StringBuilder uniquesCreateString = new StringBuilder();
