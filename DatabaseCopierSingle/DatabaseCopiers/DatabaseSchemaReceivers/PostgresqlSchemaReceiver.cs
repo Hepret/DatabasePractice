@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Data.Common;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 using UniqueConstraint = DatabaseCopierSingle.DatabaseTableComponents.UniqueConstraint;
 
 namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
 {
     public class PostgresqlSchemaReceiver : DatabaseSchemaReceiver
     {
-        public PostgresqlSchemaReceiver(PostgresqlProvider provider) : base(provider)
+        public PostgresqlSchemaReceiver(DatabaseProvider provider) : base(provider)
         {
             
         }

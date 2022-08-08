@@ -4,17 +4,17 @@ using System.Text;
 using DatabaseCopierSingle.DatabaseTableComponents;
 using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
-namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseSchema
+namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreator
 {
-    class CreatorScriptsFromSchemaMssqlToMssql
+    class CreatorScriptsFromSchemaMssqlToMssql : ICreateInsertSchemaScripts
     {
-        public static CreateDatabaseSchemaScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase)
+        public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase, string databaseNewName)
         {
-            var script = new ScriptForInsertSchema.CreateDatabaseSchemaScript(schemaDatabase)
+            var script = new ScriptForInsertSchema.DatabaseSchemaCreatingScript(schemaDatabase, databaseNewName)
             {
-                CreateDatabaseScript = new CreateDatabaseScript(schemaDatabase.DatabaseName)
+                CreateDatabaseScript = new CreateDatabaseScript(databaseNewName)
                 {
-                    Script = CreateDatabase(schemaDatabase)
+                    Script = CreateDatabase(databaseNewName)
                 },
                 CreateSchemasScripts = CreateSchemas(schemaDatabase.Schemas),
                 CreateSequencesScripts = CreateSequences(schemaDatabase.Sequences),
@@ -22,15 +22,27 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             };
             return script;
         }
-        #region Creating Database
-        private static string CreateDatabase(SchemaDatabase schema)
+
+        public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase)
         {
-            return $"CREATE DATABASE {schema.DatabaseName}";
+            var script = new DatabaseSchemaCreatingScript(schemaDatabase)
+            {
+                CreateSchemasScripts = CreateSchemas(schemaDatabase.Schemas),
+                CreateSequencesScripts = CreateSequences(schemaDatabase.Sequences),
+                CreateTablesScripts = CreateTables(schemaDatabase.Tables)
+            };
+            return script;
+        }
+
+        #region Creating Database
+        private string CreateDatabase(string databaseName)
+        {
+            return $"CREATE DATABASE {databaseName}";
         }
         #endregion
 
         #region Creating Schemas
-        private static string[] CreateSchemas(List<string> schemaDatabaseSchemas)
+        private string[] CreateSchemas(List<string> schemaDatabaseSchemas)
         {
             var createSchemasScripts = new string[schemaDatabaseSchemas.Count];
             for (int i = 0; i < schemaDatabaseSchemas.Count; i++)
@@ -45,7 +57,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
 
         #region Creating Sequences
 
-        private static string[] CreateSequences(List<SchemaSequence> sequences)
+        private string[] CreateSequences(List<SchemaSequence> sequences)
         {
             string[] createSequenceArr = new string[sequences.Count]; // Array of create seq commands
             for (int i = 0; i < sequences.Count; i++)
@@ -54,7 +66,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             }
             return createSequenceArr;
         }
-        private static string CreateSequence(SchemaSequence sequence)
+        private string CreateSequence(SchemaSequence sequence)
         {
             var createSequenceStr =
                 $"CREATE SEQUENCE {sequence.Sequence_name} " +
@@ -69,7 +81,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
         #endregion
 
         #region CreatingTables
-        private static CreateTablesScripts CreateTables(List<SchemaTable> tables)
+        private CreateTablesScripts CreateTables(List<SchemaTable> tables)
         {
             var createTablesScripts = new CreateTablesScripts(tables);
 
@@ -81,7 +93,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
 
             return createTablesScripts;
         }
-        private static string CreateTable(SchemaTable table)
+        private string CreateTable(SchemaTable table)
         {
             StringBuilder createTableStr = new StringBuilder($"CREATE TABLE [{table.SchemaCatalog}].[{table.TableName}]\n(\n");
 
@@ -101,7 +113,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             return createTableStr.ToString();
         }
         #region Creating Columns
-        private static string CreateColumns(List<SchemaColumn> schemaColumns)
+        private string CreateColumns(List<SchemaColumn> schemaColumns)
         {
             string[] columnArr = new string[schemaColumns.Count];
             for (int i = 0; i < schemaColumns.Count; i++)
@@ -112,7 +124,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             string columns = string.Join(",\n", columnArr);
             return columns;
         }
-        private static string CreateColumn(SchemaColumn schemaColumn)
+        private string CreateColumn(SchemaColumn schemaColumn)
         {
             StringBuilder createColumnStr = new StringBuilder();
             createColumnStr.Append($"[{schemaColumn.Column_name}] {schemaColumn.Data_type}");
@@ -145,11 +157,11 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             if (schemaColumn.Is_identity == "True") createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
             return createColumnStr.ToString();
         }
-        private static string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
+        private string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
         {
             return $"[{schemaColumn.Column_name}] AS {schemaColumn.Generation_expression}";
         }
-        private static string CreateIdentityForColumn(SchemaColumn schemaColumn)
+        private string CreateIdentityForColumn(SchemaColumn schemaColumn)
         {
             return $" IDENTITY " +
                 $"({schemaColumn.Identity_start},{schemaColumn.Identity_increment})";
@@ -157,7 +169,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
         #endregion
 
         #region Creating Constraints
-        private static string CreateUnique(List<UniqueConstraint> uniques)
+        private string CreateUnique(List<UniqueConstraint> uniques)
         {
             StringBuilder uniquesCreateString = new StringBuilder();
 
@@ -170,7 +182,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             }
             return uniquesCreateString.ToString();
         }
-        private static string CreateCheckConstraint(List<CheckConstraint> checkConstraints)
+        private string CreateCheckConstraint(List<CheckConstraint> checkConstraints)
         {
             StringBuilder checkConstraintString = new StringBuilder();
 
@@ -184,7 +196,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             return checkConstraintString.ToString();
 
         }
-        private static string CreateForeignKey(List<ForeignKey> foreignKeys)
+        private string CreateForeignKey(List<ForeignKey> foreignKeys)
         {
             StringBuilder fkString = new StringBuilder();
 
@@ -195,7 +207,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForCreatingDatabaseS
             }
             return fkString.ToString();
         }
-        private static string CreatePrimaryKey(PrimaryKey primaryKey)
+        private string CreatePrimaryKey(PrimaryKey primaryKey)
         {
             if (primaryKey == null) return "";
             var tmpColumnList = primaryKey.ColumnNames.Select(name => $"[{name}]");

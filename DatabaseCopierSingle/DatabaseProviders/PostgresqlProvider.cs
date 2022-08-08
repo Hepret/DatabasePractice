@@ -1,20 +1,12 @@
-﻿using DatabaseCopierSingle.DatabaseTableComponents;
-using DatabaseCopierSingle.TableDataComponents;
-using Npgsql;
+﻿using Npgsql;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UniqueConstraint = DatabaseCopierSingle.DatabaseTableComponents.UniqueConstraint;
 
 namespace DatabaseCopierSingle.DatabaseProviders
 {
-    class PostgresqlProvider : DatabaseProvider
+    public class PostgresqlProvider : DatabaseProvider
     {
         public PostgresqlProvider(string connectionString) : base(new NpgsqlConnection(connectionString)) { }
+        /*
         protected override List<CheckConstraint> GetCheckConstraints(FullTableName tableName)
         {
             List<CheckConstraint> checkConstraints = new List<CheckConstraint>();
@@ -402,8 +394,9 @@ namespace DatabaseCopierSingle.DatabaseProviders
             var queryString = $"CREATE SCHEMA \"{schemaName}\"";
             ExecuteCommand(queryString);
         }
+        */
 
-        protected override int ExecuteCommandScalar(string command)
+        public override int ExecuteCommandScalar(string command)
         {
             try
             {

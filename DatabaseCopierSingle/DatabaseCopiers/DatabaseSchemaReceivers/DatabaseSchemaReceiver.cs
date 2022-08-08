@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 
 namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
 {

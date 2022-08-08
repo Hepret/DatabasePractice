@@ -1,21 +1,12 @@
-﻿using DatabaseCopierSingle.DatabaseTableComponents;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
+﻿using System;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DatabaseCopierSingle.TableDataComponents;
-using UniqueConstraint = DatabaseCopierSingle.DatabaseTableComponents.UniqueConstraint;
 
 namespace DatabaseCopierSingle.DatabaseProviders
 {
-    class MSSQLProvider : DatabaseProvider
+    public class MssqlProvider : DatabaseProvider
     {
-        public MSSQLProvider(string connectionString) : base(new SqlConnection(connectionString)) { }
-        protected override List<CheckConstraint> GetCheckConstraints(FullTableName tableName)
+        public MssqlProvider(string connectionString) : base(new SqlConnection(connectionString)) { }
+        /*protected override List<CheckConstraint> GetCheckConstraints(FullTableName tableName)
         {
             List<CheckConstraint> checkConstraints = new List<CheckConstraint>();
             var queryString = "SELECT TABLE_NAME, TC.CONSTRAINT_NAME, CHECK_CLAUSE\n" +
@@ -438,9 +429,9 @@ namespace DatabaseCopierSingle.DatabaseProviders
             {
                 throw new Exception($"Can't create SCHEMA: {schemaName}", ex);
             }
-        }
+        }*/
 
-        protected override int ExecuteCommandScalar(string command)
+        public override int ExecuteCommandScalar(string command)
         {
             try
             {

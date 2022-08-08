@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
+using DatabaseCopierSingle.TableDataComponents;
 
 namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers
 {
-    public  class MssqlDataReceiverReceiver : DatabaseDataReceiver
+    public  class MssqlDataReceiver : DatabaseDataReceiver
     {
-        public MssqlDataReceiverReceiver(MssqlProvider provider) : base(provider)
+        public MssqlDataReceiver(DatabaseProvider provider) : base(provider)
         {
         }
         

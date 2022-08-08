@@ -1,14 +1,12 @@
-﻿using DatabaseCopierSingle.DatabaseCopiers;
-using DatabaseCopierSingle.DatabaseProviders;
-using DatabaseCopierSingle.ScriptCreators;
-using Npgsql;
+﻿using DatabaseCopierSingle.DatabaseProviders;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DatabaseCopierSingle.DatabaseCopiers;
+using DatabaseCopierSingle.DatabaseCopiers.DatabaseDataInserter;
+using DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers;
+using DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter;
+using DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers;
+using DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreator;
+using DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForInsertingDatabaseData;
 
 namespace DatabaseCopierSingle
 {
@@ -18,21 +16,19 @@ namespace DatabaseCopierSingle
         static void Main(string[] args)
         {
             //var databaseName = "holding_auctions";
-            var databaseName = "dwd";
+            var databaseName = "holding_auctions";
             var connectionString = $"Host = localhost; Username = postgres; Password = xlife33xlife33; Database = {databaseName}";
             var connectionStringTo = $"Host = localhost; Username = postgres; Password = xlife33xlife33;";
-            const string connection_str = "Server=(localdb)\\mssqllocaldb;Integrated Security=SSPI; pooling=false; database=Lol";
+            const string connection_str = "Server=(localdb)\\mssqllocaldb;Integrated Security=SSPI; pooling=false; database=HoldingAuctions";
             const string connection_str2 = "Server=(localdb)\\mssqllocaldb;Integrated Security=SSPI; pooling=false";
             const  string testConnectionStringToSelfReference = "Host = localhost; Username = postgres; Password = xlife33xlife33; Database = self_reference_test";
             try
             {
-                var copier = new CopyPostresqlToPostgresql(connectionString, connectionStringTo)
+                var copier = new CopyMssqlToMssql(connection_str, connection_str2, true)
                 {
-                    CreateNewDatabase = true,
-                    NewDatabaseName = "DeleteMe"
+                    DatabaseNewName = "dwd"
                 };
-                copier.CopySchema();
-                copier.CopyData();
+                copier.Copy();
 
 
             }
@@ -50,8 +46,6 @@ namespace DatabaseCopierSingle
             }
 
             Console.WriteLine("Success");
-            Console.Read();
-
         }
 
     }

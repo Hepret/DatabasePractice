@@ -4,6 +4,6 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
 {
     public interface IInsertDatabaseSchema
     {
-        void SetSchema(CreateDatabaseSchemaScript createDatabaseSchemaScript);
+        void SetSchema(DatabaseSchemaCreatingScript databaseSchemaCreatingScript);
     }
 }

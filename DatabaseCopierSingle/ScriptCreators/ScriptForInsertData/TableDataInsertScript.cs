@@ -5,7 +5,7 @@ using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertData
 {
-    public class TableDataInsertScript : IEnumerable
+    public class TableDataInsertScript : IEnumerable<string>
     {
         private readonly SchemaTable _schemaTable;
         public FullTableName FullTableName => _schemaTable.FullTableName;
@@ -30,7 +30,13 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertData
             Scripts.AddRange(scripts);
         }
 
-        public IEnumerator GetEnumerator()
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return Scripts.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return Scripts.GetEnumerator();
         }

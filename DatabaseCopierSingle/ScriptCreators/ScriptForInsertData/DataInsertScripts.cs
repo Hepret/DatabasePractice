@@ -6,7 +6,7 @@ using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertData
 {
-    public class DataInsertScripts : IEnumerable
+    public class DataInsertScripts : IEnumerable<TableDataInsertScript>
     {
         public TableDataInsertScript[] Scripts { get; private set; }
         private SchemaDatabase _schemaDatabase { get; set; }
@@ -47,7 +47,12 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertData
         }        
 
         #endregion
-        
+
+
+        IEnumerator<TableDataInsertScript> IEnumerable<TableDataInsertScript>.GetEnumerator()
+        {
+            return ((IEnumerable<TableDataInsertScript>)Scripts).GetEnumerator();
+        }
 
         public IEnumerator GetEnumerator()
         {

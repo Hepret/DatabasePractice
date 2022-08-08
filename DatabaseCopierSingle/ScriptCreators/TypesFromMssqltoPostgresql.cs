@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DatabaseCopierSingle.ScriptCreators
 {
-    class TypesFromMSSQLtoPostgresql
+    class TypesFromMssqltoPostgresql
     {
-        public static string GetDataTypeFromPostgresqlToMSSQL(string dataType)
+        public static string GetDataTypeFromPostgresqlToMssql(string dataType)
         {
             switch (dataType)
             {

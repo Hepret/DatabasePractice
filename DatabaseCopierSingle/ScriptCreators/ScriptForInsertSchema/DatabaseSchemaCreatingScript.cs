@@ -2,14 +2,22 @@
 
 namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema
 {
-    public class CreateDatabaseSchemaScript
+    public class DatabaseSchemaCreatingScript
     {
         private readonly SchemaDatabase _schemaDatabase;
 
-        public CreateDatabaseSchemaScript(SchemaDatabase schemaDatabase, string databaseNewName)
+        public DatabaseSchemaCreatingScript(SchemaDatabase schemaDatabase, string databaseNewName)
         {
             this._schemaDatabase = schemaDatabase;
             CreateDatabaseScript = new CreateDatabaseScript(databaseNewName);
+            CreateSchemasScripts = new string[schemaDatabase.Schemas.Count];
+            CreateSequencesScripts = new string[schemaDatabase.Sequences.Count];
+            CreateTablesScripts = new CreateTablesScripts(_schemaDatabase.Tables);
+        }
+
+        public DatabaseSchemaCreatingScript(SchemaDatabase schemaDatabase)
+        {
+            this._schemaDatabase = schemaDatabase;
             CreateSchemasScripts = new string[schemaDatabase.Schemas.Count];
             CreateSequencesScripts = new string[schemaDatabase.Sequences.Count];
             CreateTablesScripts = new CreateTablesScripts(_schemaDatabase.Tables);

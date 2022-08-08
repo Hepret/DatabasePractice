@@ -1,16 +1,14 @@
-﻿using DatabaseCopierSingle.DatabaseTableComponents;
-using DatabaseCopierSingle.TableDataComponents;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
 using System.Data.Common;
-using UniqueConstraint = DatabaseCopierSingle.DatabaseTableComponents.UniqueConstraint;
 
 namespace DatabaseCopierSingle.DatabaseProviders
 {
-    abstract class DatabaseProvider : IScanSchema, ISetSchema, IScanData, ISendData
+    public abstract class DatabaseProvider 
     {
         protected readonly DbConnection Conn;
+
+        public string DatabaseName => Conn.Database;
 
         protected DatabaseProvider(DbConnection connection)
         {
@@ -18,7 +16,6 @@ namespace DatabaseCopierSingle.DatabaseProviders
             try
             {
                 Conn.Open();
-                
             }
             catch (Exception e)
             {
@@ -39,7 +36,7 @@ namespace DatabaseCopierSingle.DatabaseProviders
                 throw new Exception($"Can't change database to: {databaseName}", e);
             }
         }
-        protected void ExecuteCommand(string command)
+        public void ExecuteCommand(string command)
         {
             try
             {
@@ -54,8 +51,23 @@ namespace DatabaseCopierSingle.DatabaseProviders
             }
             
         }
-        protected abstract int ExecuteCommandScalar(string command);
-        public void CreateNewDatabase(string databaseName)
+        public abstract int ExecuteCommandScalar(string command);
+        public DbDataReader GetDataReader(string queryString)
+        {
+            try
+            {
+                var cmd = Conn.CreateCommand();
+                cmd.CommandText = queryString;
+                var reader = cmd.ExecuteReader();
+                return reader;  
+            }
+            catch (Exception e)
+            {
+                Conn.Close();
+                throw new Exception($"Invalid Operation:\n {queryString}", e);
+            }
+        }
+        /*public void CreateNewDatabase(string databaseName)
         {
             var queryString = $"CREATE DATABASE {databaseName};";
             ExecuteCommand(queryString);
@@ -159,20 +171,7 @@ namespace DatabaseCopierSingle.DatabaseProviders
         {
             ExecuteCommand(queryStringForCreateSchema);
         }
-        // SENDING DATA
-        public void SetData(string queryStringToInsertData)
-        {
-            if (queryStringToInsertData != null)
-                ExecuteCommand(queryStringToInsertData);
-        }
-        public void SetData(IEnumerable<string> queryStringsForInsertData)
-        {
-            foreach (var queryString in queryStringsForInsertData)
-            {
-                if (queryString == null) continue;
-                SetData(queryString);
-            }
-        }      
+         
         // GETTING DATA 
         public DatabaseData GetData(SchemaDatabase schema)
         {
@@ -210,20 +209,6 @@ namespace DatabaseCopierSingle.DatabaseProviders
             }
         }
         
-        // TODO DELETE
-        /*protected void GetDataFromTable(TableData table)
-        {
-            var tableName = table.TableSchema.FullTableName;
-            var amountOfRows = GetNumberOfRowsInTheTable(tableName);
-            if (amountOfRows == 0) return;
-            for (int i = 0; i <= amountOfRows / 100; i++)
-            {
-                int rowsAmountToGet = i == (amountOfRows / 100) ? amountOfRows % 100 : 100;
-                var rangeOfRows = GetRangeOfRowsFromTable(tableName, i * 100, rowsAmountToGet);
-                table.AddData(rangeOfRows);
-            }
-        }*/
-        
         protected DbDataReader GetDataReader(string queryString)
         {
             try
@@ -249,7 +234,7 @@ namespace DatabaseCopierSingle.DatabaseProviders
         }
         protected abstract TableDataRow[] GetRangeOfRowsFromTable(FullTableName tableName, int startWith = 0, int amountOfRows = 100);
         protected abstract int GetNumberOfRowsInTheTable(FullTableName tableName);
-        public abstract void CreateSchema(string schemaName);
+        public abstract void CreateSchema(string schemaName);*/
         
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Remoting.Proxies;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 using DatabaseCopierSingle.TableDataComponents;
 
 namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers
@@ -20,7 +21,7 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers
         public DatabaseData GetDatabaseData(SchemaDatabase schemaDatabase)
         {
             DatabaseData databaseData = new DatabaseData(schemaDatabase);
-            foreach (var table in databaseData.TableDatas)
+            foreach (var table in databaseData.TableData)
             {
                 // Empty Test
                 var amountOfRowsInTheTable = GetNumberOfRowsInTheTable(table.TableSchema.FullTableName);

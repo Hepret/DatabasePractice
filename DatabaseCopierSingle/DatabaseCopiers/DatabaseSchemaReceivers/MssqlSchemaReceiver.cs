@@ -4,13 +4,14 @@ using System.Data;
 using System.Data.Common;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 using UniqueConstraint = DatabaseCopierSingle.DatabaseTableComponents.UniqueConstraint;
 
 namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
 {
     public class MssqlSchemaReceiver : DatabaseSchemaReceiver
     {
-        public MssqlSchemaReceiver(MssqlProvider provider) : base(provider)
+        public MssqlSchemaReceiver(DatabaseProvider provider) : base(provider)
         {
         }
 

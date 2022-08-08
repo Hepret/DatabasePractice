@@ -15,12 +15,12 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
         {
             NeedToCreateDatabase = needToCreateDatabase;
         }
-        public void SetSchema(CreateDatabaseSchemaScript createDatabaseSchemaScript)
+        public void SetSchema(DatabaseSchemaCreatingScript databaseSchemaCreatingScript)
         {
-            CreateDatabase(createDatabaseSchemaScript.CreateDatabaseScript);
-            CreateSchemas(createDatabaseSchemaScript.CreateSchemasScripts);
-            CreateSequences(createDatabaseSchemaScript.CreateSequencesScripts);
-            CreateTables(createDatabaseSchemaScript.CreateTablesScripts);
+            CreateDatabase(databaseSchemaCreatingScript.CreateDatabaseScript);
+            CreateSchemas(databaseSchemaCreatingScript.CreateSchemasScripts);
+            CreateSequences(databaseSchemaCreatingScript.CreateSequencesScripts);
+            CreateTables(databaseSchemaCreatingScript.CreateTablesScripts);
         }
         private void CreateTables(CreateTablesScripts createTablesScripts)
         {

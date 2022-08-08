@@ -7,6 +7,8 @@ namespace DatabaseCopierSingle.TableDataComponents
     public class TableDataRow : IEnumerable
     {
         private object[] Data { get; set; } // Data from db row
+        
+
         private SchemaTable SchemaTable { get; set; }
         public int ColumnAmount => Data.Length;
 

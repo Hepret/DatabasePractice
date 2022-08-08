@@ -1,4 +1,5 @@
-﻿using DatabaseCopierSingle.DatabaseTableComponents;
+﻿/*
+using DatabaseCopierSingle.DatabaseTableComponents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -226,7 +227,7 @@ namespace DatabaseCopierSingle.ScriptCreators
                 
             }
 
-        }*/
+        }#1#
 
         private static string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
         {
@@ -242,4 +243,5 @@ namespace DatabaseCopierSingle.ScriptCreators
         }
     }
 }
+*/
 
