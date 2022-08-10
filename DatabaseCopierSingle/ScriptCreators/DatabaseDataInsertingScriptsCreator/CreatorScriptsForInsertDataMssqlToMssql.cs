@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using DatabaseCopierSingle.DatabaseTableComponents;
 using DatabaseCopierSingle.ScriptCreators.ScriptForInsertData;
@@ -9,7 +10,7 @@ using DatabaseCopierSingle.TableDataComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreator
 {
-    class CreatorScriptsesForInsertDataMssqlToMssql : ICreateInsertDataScripts
+    class CreatorScriptsForInsertDataMssqlToMssql : ICreateInsertDataScripts
     {
     public DataInsertScripts CreateInsertDataScript(DatabaseData data)
     {
@@ -27,8 +28,8 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
     private string[] CreateInsertDataScriptIntoTable(TableData data)
     {
-        string[] tableDataInsertScripts = new string[data.Data.Count];
-        for (int i = 0; i < data.Data.Count; i++)
+        var tableDataInsertScripts = new string[data.Data.Count];
+        for (var i = 0; i < data.Data.Count; i++)
         {
             tableDataInsertScripts[i] = CreateInsertDataIntervalIntoTableScript(data.TableSchema, data[i]);
         }
@@ -38,15 +39,14 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
     private string CreateInsertDataIntervalIntoTableScript(SchemaTable table, DataRowInterval dataForInsert)
     {
-
+        var tableHasIdentity = table.Columns.Exists(col => col.Identity_generation == "ALWAYS");
         string tableName = table.TableName;
         StringBuilder insertString = new StringBuilder();
 
         insertString.AppendLine(
-            $"INSERT INTO [{table.SchemaCatalog}].[{tableName}] ({ChoiceColumnsWithoutIdentityAndGenerated(table)})" +
+            $"SET IDENTITY_INSERT [{table.SchemaCatalog}].[{tableName}] ON;\n" +
+            $"INSERT INTO [{table.SchemaCatalog}].[{tableName}] ({ChoiceColumnsWithoutGenerated(table)})" +
             $"\nVALUES");
-
-
 
         string[] stringRows = new string[dataForInsert.Count];
 
@@ -60,10 +60,18 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
         insertString.AppendLine(allRowsString);
         insertString.AppendLine(";");
-
+        insertString.AppendLine($"SET IDENTITY_INSERT [{table.SchemaCatalog}].[{tableName}] OFF;\n");
         return insertString.ToString();
     }
-
+    
+    private string ChoiceColumnsWithoutGenerated(SchemaTable table)
+    {
+        var columnNames = table.Columns
+            .Where(col => col.Is_generated != "1")
+            .Select(col => col.Column_name);
+        var columnsWithoutIdentity = string.Join(",", columnNames);
+        return columnsWithoutIdentity;
+    }
     private string ChoiceColumnsWithoutIdentityAndGenerated(SchemaTable table)
     {
         List<string> columnNames = new List<string>();
@@ -81,7 +89,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
         List<string> stringRow = new List<string>();
         for (int i = 0; i < row.ColumnAmount; i++)
         {
-            if (table.Columns[i].Is_identity == "True" || table.Columns[i].Is_generated == "1") continue;
+            if (table.Columns[i].Is_generated == "1") continue;
             var itemString = CreateItemString(row[i], table.Columns[i]);
             stringRow.Add(itemString);
         }

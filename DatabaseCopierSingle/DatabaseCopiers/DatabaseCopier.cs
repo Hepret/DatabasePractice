@@ -1,4 +1,5 @@
-﻿using DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers;
+﻿using System.Linq;
+using DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers;
 using DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
@@ -11,25 +12,25 @@ namespace DatabaseCopierSingle.DatabaseCopiers
 {
     abstract class DatabaseCopier : IDatabaseCopy
     {
-        protected DatabaseProvider ProviderFrom;
-        protected DatabaseProvider ProviderTo;
+        protected readonly DatabaseProvider ProviderFrom;
+        protected readonly DatabaseProvider ProviderTo;
 
-        protected DatabaseSchemaReceiver _schemaReceiver;
-        protected DatabaseDataReceiver _dataReceiver;
+        protected DatabaseSchemaReceiver SchemaReceiver;
+        protected DatabaseDataReceiver DataReceiver;
 
-        protected DatabaseSchemaInserter.DatabaseSchemaInserter _databaseSchemaInserter;
-        protected DatabaseDataInserter.DatabaseDataInserter _databaseDataInserter;
+        protected DatabaseSchemaInserter.DatabaseSchemaInserter DatabaseSchemaInserter;
+        protected DatabaseDataInserter.DatabaseDataInserter DatabaseDataInserter;
 
-        protected ICreateInsertSchemaScripts _schemaScriptsCreator;
-        protected ICreateInsertDataScripts _dataScriptsCreator;
+        protected ICreateInsertSchemaScripts SchemaScriptsCreator;
+        protected ICreateInsertDataScripts DataScriptsCreator;
 
         protected SchemaDatabase Schema;
         protected DatabaseData Data;
         private string _databaseNewName;
 
-        public bool NeedToCreateNewDatabase { get; } = false;
+        protected bool NeedToCreateNewDatabase { get; } = false;
 
-        protected DatabaseCopier(DatabaseProvider providerFrom, DatabaseProvider providerTo)
+        private DatabaseCopier(DatabaseProvider providerFrom, DatabaseProvider providerTo)
         {
             ProviderFrom = providerFrom;
             ProviderTo = providerTo;
@@ -47,16 +48,18 @@ namespace DatabaseCopierSingle.DatabaseCopiers
         }
         private void CopySchema()
         {
-            Schema = _schemaReceiver.GetDatabaseSchema();
-            var scripts = NeedToCreateNewDatabase ? _schemaScriptsCreator.CreateScriptsForInsertSchema(Schema, DatabaseNewName) : _schemaScriptsCreator.CreateScriptsForInsertSchema(Schema);
-            _databaseSchemaInserter.SetSchema(scripts);
+            Schema = SchemaReceiver.GetDatabaseSchema();
+            var scripts = NeedToCreateNewDatabase ? SchemaScriptsCreator.CreateScriptsForInsertSchema(Schema, DatabaseNewName) : SchemaScriptsCreator.CreateScriptsForInsertSchema(Schema);
+            DatabaseSchemaInserter.SetSchema(scripts);
         }
         private void CopyData()
         {
-            Data = _dataReceiver.GetDatabaseData(Schema);
-            var scripts = _dataScriptsCreator.CreateInsertDataScript(Data);
-            _databaseDataInserter.InsertData(scripts);
+            Data = DataReceiver.GetDatabaseData(Schema);
+            var scripts = DataScriptsCreator.CreateInsertDataScript(Data);
+            DatabaseDataInserter.InsertData(scripts);
         }
+        
+
         public void Copy()
         {
             CopySchema();

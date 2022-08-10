@@ -95,12 +95,12 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
 
             void Func(SchemaTable table)
             {
-                if (table.isVisited) return;
+                if (table.IsVisited) return;
                 foreach (var referencedTable in table.ReferencedTables)
                 {
                     Func(referencedTable);
                 }
-                table.isVisited = true;
+                table.IsVisited = true;
                 orderedTables.Add(table);
             }
         }

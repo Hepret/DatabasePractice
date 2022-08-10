@@ -10,7 +10,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
     {
         public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase, string databaseNewName)
         {
-            var script = new ScriptForInsertSchema.DatabaseSchemaCreatingScript(schemaDatabase, databaseNewName)
+            var script = new DatabaseSchemaCreatingScript(schemaDatabase, databaseNewName)
             {
                 CreateDatabaseScript = new CreateDatabaseScript(databaseNewName)
                 {
@@ -89,17 +89,39 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             for (var i = 0; i < createTablesScripts.Count; i++)
             {
-                var script = CreateTable(tables[i]);
+                var script = tables[i].HasSelfReference 
+                    ? CreateTableWithSelfReference(tables[i]) :
+                    CreateTable(tables[i]);
                 createTablesScripts[i].Script = script;
             }
 
             return createTablesScripts;
         }
+
+        private string CreateTableWithSelfReference(SchemaTable table)
+        {
+            StringBuilder createTableStr = new StringBuilder($"CREATE TABLE \"{table.SchemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
+            string columns = CreateColumns(table.Columns, table.HasSelfReference);
+            string pk = CreatePrimaryKey(table.PrimaryKey);
+            string fk = CreateForeignKey(table.ForeignKeys.Where(fork => fork.IsSelfReference != true));
+            string unique = CreateUnique(table.UniqueConstraints);
+            string checks = CreateCheckConstraint(table.CheckConstraints);
+            
+            if (!string.IsNullOrEmpty(columns)) createTableStr.Append(columns);
+            if (!string.IsNullOrEmpty(pk)) createTableStr.Append(pk);
+            if (!string.IsNullOrEmpty(fk)) createTableStr.Append(fk);
+            if (!string.IsNullOrEmpty(unique)) createTableStr.Append(unique);
+            if (!string.IsNullOrEmpty(checks)) createTableStr.Append(checks);
+            
+            createTableStr.AppendLine("\n);");
+            return createTableStr.ToString();
+        }
+
         private string CreateTable(SchemaTable table)
         {
             StringBuilder createTableStr = new StringBuilder($"CREATE TABLE \"{table.SchemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
 
-            string columns = CreateColumns(table.Columns);
+            string columns = CreateColumns(table.Columns, table.HasSelfReference);
             string pk = CreatePrimaryKey(table.PrimaryKey);
             string fk = CreateForeignKey(table.ForeignKeys);
             string unique = CreateUnique(table.UniqueConstraints);
@@ -117,18 +139,19 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
         #region Creating Columns 
 
-        private string CreateColumns(List<SchemaColumn> schemaColumns )
+        private string CreateColumns(List<SchemaColumn> schemaColumns, bool tableHasSelfReference )
                 {
                     string[] columnArr = new string[schemaColumns.Count];
                     for (int i = 0; i < schemaColumns.Count; i++)
                     {
-                        var column = CreateColumn(schemaColumns[i]);
+                        var column = CreateColumn(schemaColumns[i], tableHasSelfReference);
                         columnArr[i] = column;
                     }
                     string columns = string.Join(",\n", columnArr);
                     return columns;
                 }
-        private string CreateColumn(SchemaColumn schemaColumn)
+
+        private string CreateColumn(SchemaColumn schemaColumn, bool tableHasSelfReference = false)
                  {
                      StringBuilder createColumnStr = new StringBuilder();
                      createColumnStr.Append($"\"{schemaColumn.Column_name}\" {schemaColumn.Data_type}");
@@ -151,7 +174,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
                      }
                      createColumnStr.Append($" {schemaColumn.Is_nullable}");
                      if (!string.IsNullOrEmpty(schemaColumn.Column_default)) createColumnStr.Append($" DEFAULT {schemaColumn.Column_default}");
-                     if (schemaColumn.Is_identity == "YES") createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
+                     if (schemaColumn.Is_identity == "YES" && !tableHasSelfReference) createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
                      if (schemaColumn.Is_generated == "ALWAYS") createColumnStr.Append(CreateGeneratedStoredColumn(schemaColumn));
                      return createColumnStr.ToString();
                  }
@@ -207,7 +230,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
             return checkConstraintString.ToString();
 
         }
-        private string CreateForeignKey(List<ForeignKey> foreignKeys)
+        private string CreateForeignKey(IEnumerable<ForeignKey> foreignKeys)
         {
             StringBuilder fkString = new StringBuilder();
 

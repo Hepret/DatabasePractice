@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 
 namespace DatabaseCopierSingle.DatabaseTableComponents
@@ -22,11 +19,7 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         {
             get
             {
-                foreach (var foreignKey in ForeignKeys )
-                {
-                    if (foreignKey.IsSelfReference) return true;
-                }
-                return false;
+                return ForeignKeys.Any(foreignKey => foreignKey.IsSelfReference);
             }
         }
 
@@ -55,10 +48,8 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
             UniqueConstraints = uniqueConstraints;
             CheckConstraints = checkConstraints;
         }
-        
 
-        internal bool isVisited = false;
-
+        internal bool IsVisited = false;
         internal void AddUnique(UniqueConstraint unique) => UniqueConstraints.Add(unique);
         internal void AddUnique(IEnumerable<UniqueConstraint> uniques)
         {
@@ -72,8 +63,6 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         {
             CheckConstraints.AddRange(checkConstraints);
         }
-        
-
         public void AddForeignKey(ForeignKey foreignKey) => ForeignKeys.Add(foreignKey);
         public void AddForeignKey(IEnumerable<ForeignKey> foreignKeys)
         {

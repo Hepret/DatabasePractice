@@ -7,7 +7,8 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
     {
         private readonly DatabaseProvider _provider;
         private bool NeedToCreateDatabase { get; set; } = false;
-        public DatabaseSchemaInserter(DatabaseProvider provider)
+
+        private DatabaseSchemaInserter(DatabaseProvider provider)
         {
             _provider = provider;
         }
@@ -22,6 +23,7 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
             CreateSequences(databaseSchemaCreatingScript.CreateSequencesScripts);
             CreateTables(databaseSchemaCreatingScript.CreateTablesScripts);
         }
+        
         private void CreateTables(CreateTablesScripts createTablesScripts)
         {
             foreach (CreateTableScript createTableScripts in createTablesScripts)
@@ -49,5 +51,6 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
                 _provider.ExecuteCommand(createSchemaScript);
             }
         }
+        
     }
 }

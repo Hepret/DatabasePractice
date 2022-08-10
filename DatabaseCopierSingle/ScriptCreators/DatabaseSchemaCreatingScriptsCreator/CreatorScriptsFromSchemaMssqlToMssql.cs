@@ -10,7 +10,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
     {
         public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase, string databaseNewName)
         {
-            var script = new ScriptForInsertSchema.DatabaseSchemaCreatingScript(schemaDatabase, databaseNewName)
+            var script = new DatabaseSchemaCreatingScript(schemaDatabase, databaseNewName)
             {
                 CreateDatabaseScript = new CreateDatabaseScript(databaseNewName)
                 {
@@ -93,10 +93,14 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             return createTablesScripts;
         }
+        
+
+        
+        
         private string CreateTable(SchemaTable table)
         {
             StringBuilder createTableStr = new StringBuilder($"CREATE TABLE [{table.SchemaCatalog}].[{table.TableName}]\n(\n");
-
+            
             string columns = CreateColumns(table.Columns);
             string pk = CreatePrimaryKey(table.PrimaryKey);
             string fk = CreateForeignKey(table.ForeignKeys);
@@ -154,7 +158,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
             }
             createColumnStr.Append($" {schemaColumn.Is_nullable}");
             if (!string.IsNullOrEmpty(schemaColumn.Column_default)) createColumnStr.Append($" DEFAULT {schemaColumn.Column_default}");
-            if (schemaColumn.Is_identity == "True") createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
+            if (schemaColumn.Is_identity == "True" ) createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
             return createColumnStr.ToString();
         }
         private string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
@@ -196,7 +200,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
             return checkConstraintString.ToString();
 
         }
-        private string CreateForeignKey(List<ForeignKey> foreignKeys)
+        private string CreateForeignKey(IEnumerable<ForeignKey> foreignKeys)
         {
             StringBuilder fkString = new StringBuilder();
 
@@ -215,5 +219,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         }
         #endregion
         #endregion
+
+        
     }
 }
