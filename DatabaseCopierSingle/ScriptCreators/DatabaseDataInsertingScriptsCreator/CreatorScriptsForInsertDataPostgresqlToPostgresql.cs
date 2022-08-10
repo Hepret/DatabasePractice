@@ -44,7 +44,8 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             StringBuilder insertString = new StringBuilder();
             
             insertString.AppendLine($"INSERT INTO \"{table.SchemaCatalog}\".\"{tableName}\" ({ChoiceColumnsWithoutGenerated(table)})" +
-                $"\nVALUES");
+                                    "OVERRIDING SYSTEM VALUE \n" + 
+                                    $"\nVALUES");
 
 
 
