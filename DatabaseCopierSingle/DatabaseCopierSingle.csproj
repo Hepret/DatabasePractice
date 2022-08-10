@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C6CD2D0C-F450-447A-B7A2-CEF91BC06487}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>DatabaseCopierSingle</RootNamespace>
     <AssemblyName>DatabaseCopierSingle</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -119,7 +119,6 @@
     <Compile Include="DatabaseTableComponents\SchemaSequence.cs" />
     <Compile Include="DatabaseTableComponents\SchemaTable.cs" />
     <Compile Include="DatabaseTableComponents\UniqueConstraint.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCreators\DatabaseDataInsertingScriptsCreator\CreatorScriptsForInsertDataMssqlToMssql.cs" />
     <Compile Include="ScriptCreators\ScriptForInsertData\DataInsertScripts.cs" />
