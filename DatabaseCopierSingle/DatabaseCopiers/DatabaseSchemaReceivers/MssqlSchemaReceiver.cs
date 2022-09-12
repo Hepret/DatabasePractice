@@ -188,29 +188,50 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
                     {
                         sequences.Add(new SchemaSequence()
                         {
-                            Sequence_catalog = reader[0].ToString(),
-                            Sequence_schema = reader[1].ToString(),
-                            Sequence_name = reader[2].ToString(),
-                            Data_type = reader[3].ToString(),
-                            Numeric_presicion = reader[4].ToString(),
-                            Numeric_presicion_radix = reader[5].ToString(),
-                            Numeric_scale = reader[6].ToString(),
-                            Start_vlaue = reader[7].ToString(),
-                            Minimum_value = reader[8].ToString(),
-                            Maximum_value = reader[9].ToString(),
+                            SequenceCatalog = reader[0].ToString(),
+                            SequenceSchema = reader[1].ToString(),
+                            SequenceName = reader[2].ToString(),
+                            DataType = reader[3].ToString(),
+                            NumericPresicion = reader[4].ToString(),
+                            NumericPresicionRadix = reader[5].ToString(),
+                            NumericScale = reader[6].ToString(),
+                            StartValue = reader[7].ToString(),
+                            MinimumValue = reader[8].ToString(),
+                            MaximumValue = reader[9].ToString(),
                             Increment = reader[10].ToString(),
-                            Cycle_option = reader[11].ToString()
+                            CycleOption = reader[11].ToString()
                         });
                     }
-                    return sequences;
                 }
+
+                GetLastValueSequences(sequences);
+                return sequences;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Can't get SEQUENCES", ex);
             }
         }
-        
+
+        private void GetLastValueSequences(List<SchemaSequence> sequences)
+        {
+            foreach (var sequence in sequences)
+            {
+                string queryString =
+                    "SELECT CURRENT_VALUE\n" +
+                    "FROM SYS.SEQUENCES\n" +
+                    $"WHERE NAME = '{sequence.SequenceName}'\n" +
+                    $"AND SCHEMA_NAME(schema_id) = '{sequence.SequenceSchema}';";
+
+                
+                using (var reader  = Provider.GetDataReader(queryString))
+                {
+                    reader.Read();
+                    sequence.LastValue = reader[0];
+                }
+            }
+        }
+
         protected override List<SchemaColumn> GetTableColumns(FullTableName tableName)
         {
             try
@@ -254,29 +275,29 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
         {
             SchemaColumn column = new SchemaColumn
             {
-                Table_catalog = reader[0].ToString(),
-                Table_schema = reader[1].ToString(),
-                Table_name = reader[2].ToString(),
-                Column_name = reader[3].ToString(),
-                Ordinal_position = reader[4].ToString(),
-                Column_default = reader[5].ToString(),
-                Is_nullable = reader[6].ToString() == "NO" ? "NOT NULL" : "NULL",
-                Data_type = reader[7].ToString(),
-                Character_maximum_length = reader[8].ToString(),
-                Character_octet_length = reader[9].ToString(),
-                Numeric_presicion = reader[10].ToString(),
-                Numeric_presicion_radix = reader[11].ToString(),
-                Numeric_scale = reader[12].ToString(),
-                Datetime_presicion = reader[13].ToString(),
-                Character_set_catalog = reader[15].ToString(),
-                Character_set_schema = reader[16].ToString(),
-                Character_set_name = reader[17].ToString(),
-                Collation_catalog = reader[18].ToString(),
-                Is_identity = reader[23].ToString(),
-                Identity_start = reader[24].ToString(),
-                Identity_increment = reader[25].ToString(),
-                Is_generated = reader[26].ToString(),
-                Generation_expression = reader[27].ToString()
+                TableCatalog = reader[0].ToString(),
+                TableSchema = reader[1].ToString(),
+                TableName = reader[2].ToString(),
+                ColumnName = reader[3].ToString(),
+                OrdinalPosition = reader[4].ToString(),
+                ColumnDefault = reader[5].ToString(),
+                IsNullable = reader[6].ToString() == "NO" ? "NOT NULL" : "NULL",
+                DataType = reader[7].ToString(),
+                CharacterMaximumLength = reader[8].ToString(),
+                CharacterOctetLength = reader[9].ToString(),
+                NumericPresicion = reader[10].ToString(),
+                NumericPresicionRadix = reader[11].ToString(),
+                NumericScale = reader[12].ToString(),
+                DatetimePresicion = reader[13].ToString(),
+                CharacterSetCatalog = reader[15].ToString(),
+                CharacterSetSchema = reader[16].ToString(),
+                CharacterSetName = reader[17].ToString(),
+                CollationCatalog = reader[18].ToString(),
+                IsIdentity = reader[23].ToString(),
+                IdentityStart = reader[24].ToString(),
+                IdentityIncrement = reader[25].ToString(),
+                IsGenerated = reader[26].ToString(),
+                GenerationExpression = reader[27].ToString()
             };
             return column;
         }
