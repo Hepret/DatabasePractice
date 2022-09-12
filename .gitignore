@@ -3,5 +3,6 @@ packages/*
 DatabaseCopierSingle/bin/*
 DatabaseCopierSingle/obj/*
 .idea
-
+TestDatabase
 DatabaseCopierSingle.sln.DotSettings.user
+DatabaseCopierSingle.sln.DotSettings
