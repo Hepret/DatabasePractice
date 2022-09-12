@@ -12,7 +12,7 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
         {
             _provider = provider;
         }
-        public DatabaseSchemaInserter(DatabaseProvider provider, bool needToCreateDatabase) : this(provider)
+        public DatabaseSchemaInserter(DatabaseProvider provider, bool needToCreateDatabase = false) : this(provider)
         {
             NeedToCreateDatabase = needToCreateDatabase;
         }
@@ -40,7 +40,8 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
         }
         private void CreateDatabase(CreateDatabaseScript createDatabaseScript)
         {
-            if (NeedToCreateDatabase) _provider.ExecuteCommand(createDatabaseScript.Script);
+            if (createDatabaseScript == null) return;
+            _provider.ExecuteCommand(createDatabaseScript.Script);
             var databaseNameNew = createDatabaseScript.DatabaseName;
             _provider.ChangeDatabase(databaseNameNew);
         }
