@@ -1,21 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
+﻿using System.Collections.Generic;
 
-namespace DatabaseCopierSingle.DatabaseTableComponents
+namespace DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents
 {
-    public class PrimaryKey
+    public class PrimaryKey 
     {
         public string ConstraintName { get; set; }
         public FullTableName FullTableName { get; set; }
         public List<string> ColumnNames { get; set; }
 
-        public override string ToString()
+        public void AddColumnName(string columnName)
         {
-            return $"{ConstraintName} - PRIMARY KEY : {FullTableName.TableName}({string.Join(",", ConstraintName)})";
+            ColumnNames.Add(columnName);
+        }
+
+        public void AddColumnNames(IEnumerable<string> columnNames)
+        {
+            ColumnNames.AddRange(columnNames);
         }
     }
 }

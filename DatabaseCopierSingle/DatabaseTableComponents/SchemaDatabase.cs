@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DatabaseCopierSingle.DatabaseTableComponents
 {
     public class SchemaDatabase
     {
-
         List<SchemaTable> _tables;
         public string DatabaseName { get; set; }
         public List<string> Schemas { get; set; } 
@@ -16,10 +12,10 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         {
             get
             {
-                if (!_tablesAreOdered)
+                if (!_tablesAreOrdered)
                 {
                     GetOrder();
-                    _tablesAreOdered = true;
+                    _tablesAreOrdered = true;
                 }
                 return _tables;
             }
@@ -27,7 +23,7 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
             private set => _tables = value; 
         }
 
-        bool _tablesAreOdered = false;
+        private bool _tablesAreOrdered;
 
         public SchemaDatabase()
         {
@@ -53,17 +49,20 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
             }
             if (sequences != null) Sequences.AddRange(sequences);
         }
+
+        public void AddSchema(string schemaName) => Schemas.Add(schemaName);
+        public void AddSchemas(IEnumerable<string> schemaNames) => Schemas.AddRange(schemaNames);
         
         public void AddTable(SchemaTable table)
         {
             _tables.Add(table);
-            _tablesAreOdered = false;
+            _tablesAreOrdered = false;
         }
         public void AddTables(IEnumerable<SchemaTable> tables)
         {
             if (tables == null) return;
             this._tables.AddRange(tables);
-            _tablesAreOdered = false;
+            _tablesAreOrdered = false;
         }
         private void GetReferencedTables()
         {
@@ -74,7 +73,7 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
                     if (fk.IsSelfReference) continue;
                     else
                     {
-                        var referencedTable = _tables.Where(t => t.TableName == fk.ReferencedTable).FirstOrDefault();
+                        var referencedTable = _tables.FirstOrDefault(t => t.TableName == fk.ReferencedTable);
                         if (table.ReferencedTables.Contains(referencedTable)) continue;
                         table.ReferencedTables.Add(referencedTable);
                     }
@@ -104,6 +103,5 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
                 orderedTables.Add(table);
             }
         }
-        
     }
 }

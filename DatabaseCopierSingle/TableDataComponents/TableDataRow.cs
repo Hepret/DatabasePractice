@@ -13,8 +13,8 @@ namespace DatabaseCopierSingle.TableDataComponents
         public int ColumnAmount => Data.Length;
 
         public object this[string columnName] =>
-            Data[SchemaTable.Columns.Where(column => column.Column_name == columnName)
-                .Select(column => int.Parse(column.Ordinal_position)-1)
+            Data[SchemaTable.Columns.Where(column => column.ColumnName == columnName)
+                .Select(column => int.Parse(column.OrdinalPosition)-1)
                 .First()];
         public object this[int index] => Data[index];
 

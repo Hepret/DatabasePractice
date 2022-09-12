@@ -31,13 +31,13 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
             UniqueConstraints = new List<UniqueConstraint>();
             CheckConstraints = new List<CheckConstraint>();
         }
-        public FullTableName FullTableName { get => 
-                new FullTableName
-                {
-                    TableName = this.TableName,
-                    SchemaCatalogName = this.SchemaCatalog
-                };
-             }
+        public FullTableName FullTableName =>
+            new FullTableName
+            {
+                TableName = this.TableName,
+                SchemaCatalogName = this.SchemaCatalog
+            };
+
         public SchemaTable(string tableName, List<SchemaColumn> columns, List<ForeignKey> foreignKeys, PrimaryKey primaryKey, List<UniqueConstraint> uniqueConstraints, List<CheckConstraint> checkConstraints, string schemaCatalog)
         {
             SchemaCatalog = schemaCatalog;
@@ -73,6 +73,5 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
         {
             if (columns != null) this.Columns.AddRange(columns);
         }
-
     }
 }
