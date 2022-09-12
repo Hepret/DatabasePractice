@@ -11,7 +11,8 @@ using DatabaseCopierSingle.TableDataComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreator
 {
-    public class CreatorScriptsForInsertDataPostgresqlToPostgresql : ICreateInsertDataScripts
+    public class CreatorScriptsForInsertDataMssqlToPostgresql :  ICreateInsertDataScripts
+    
     {
         public DataInsertScripts CreateInsertDataScript(DatabaseData data)
         {
@@ -44,12 +45,12 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             string tableName = table.TableName;
             StringBuilder insertString = new StringBuilder();
             
-            insertString.AppendLine($"INSERT INTO \"{table.SchemaCatalog}\".\"{tableName}\" ({ChoiceColumnsWithoutGenerated(table)})" +
+            string schemaCatalog = table.SchemaCatalog == "dbo" ? "public" : table.SchemaCatalog;
+            insertString.AppendLine(
+                $"INSERT INTO \"{schemaCatalog}\".\"{tableName}\" ({ChoiceColumnsWithoutGenerated(table)})" +
                                     "OVERRIDING SYSTEM VALUE \n" + 
                                     $"\nVALUES");
-
-
-
+            
             string[] stringRows = new string[dataForInsert.Count];
 
             for (int i = 0; i < dataForInsert.Count; i++)
@@ -69,8 +70,8 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
         private string ChoiceColumnsWithoutGenerated(SchemaTable table)
         {
             var columnNames = table.Columns
-                .Where(col => col.IsGenerated != "ALWAYS")
-                .Select(col => col.ColumnName);
+                .Where(col => col.IsGenerated != "1")
+                .Select(col => $"\"{col.ColumnName}\"");
             var columnsWithoutIdentity = string.Join(",", columnNames);
             return columnsWithoutIdentity;
         }
@@ -142,6 +143,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
                 default:
                     var tmp = item.ToString();
                     return $"'{ tmp.Replace("'", "''")}'";
+                
             }
         }
     }

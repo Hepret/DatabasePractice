@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Text;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
 namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreator
 {
-    class CreatorScriptsFromSchemaPostgresqlToPostgresql : ICreateInsertSchemaScripts
+    public class CreatorScriptsFromSchemaPostgresqlToPostgresql : ICreateInsertSchemaScripts
     {
         public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase, string databaseNewName)
         {
@@ -70,16 +71,15 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         private string CreateSequence(SchemaSequence sequence)
         {
             var createSequenceStr =
-                $"CREATE SEQUENCE \"{sequence.Sequence_schema}\".\"{sequence.Sequence_name}\" " +
+                $"CREATE SEQUENCE \"{sequence.SequenceSchema}\".\"{sequence.SequenceName}\" " +
                 $"INCREMENT BY {sequence.Increment} " +
-                $"MINVALUE {sequence.Minimum_value} " +
-                $"MAXVALUE {sequence.Maximum_value} " +
-                $"START WITH {sequence.Start_vlaue};";
+                $"MINVALUE {sequence.MinimumValue} " +
+                $"MAXVALUE {sequence.MaximumValue} " +
+                $"START WITH {sequence.LastValue};";
 
             return createSequenceStr;
         }
         
-
         #endregion
 
         #region Creating Tables
@@ -89,39 +89,18 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             for (var i = 0; i < createTablesScripts.Count; i++)
             {
-                var script = tables[i].HasSelfReference 
-                    ? CreateTableWithSelfReference(tables[i]) :
-                    CreateTable(tables[i]);
+                var script = CreateTable(tables[i]);
                 createTablesScripts[i].Script = script;
             }
 
             return createTablesScripts;
         }
-
-        private string CreateTableWithSelfReference(SchemaTable table)
-        {
-            StringBuilder createTableStr = new StringBuilder($"CREATE TABLE \"{table.SchemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
-            string columns = CreateColumns(table.Columns, table.HasSelfReference);
-            string pk = CreatePrimaryKey(table.PrimaryKey);
-            string fk = CreateForeignKey(table.ForeignKeys.Where(fork => fork.IsSelfReference != true));
-            string unique = CreateUnique(table.UniqueConstraints);
-            string checks = CreateCheckConstraint(table.CheckConstraints);
-            
-            if (!string.IsNullOrEmpty(columns)) createTableStr.Append(columns);
-            if (!string.IsNullOrEmpty(pk)) createTableStr.Append(pk);
-            if (!string.IsNullOrEmpty(fk)) createTableStr.Append(fk);
-            if (!string.IsNullOrEmpty(unique)) createTableStr.Append(unique);
-            if (!string.IsNullOrEmpty(checks)) createTableStr.Append(checks);
-            
-            createTableStr.AppendLine("\n);");
-            return createTableStr.ToString();
-        }
-
+        
         private string CreateTable(SchemaTable table)
         {
             StringBuilder createTableStr = new StringBuilder($"CREATE TABLE \"{table.SchemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
 
-            string columns = CreateColumns(table.Columns, table.HasSelfReference);
+            string columns = CreateColumns(table.Columns);
             string pk = CreatePrimaryKey(table.PrimaryKey);
             string fk = CreateForeignKey(table.ForeignKeys);
             string unique = CreateUnique(table.UniqueConstraints);
@@ -139,60 +118,60 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
         #region Creating Columns 
 
-        private string CreateColumns(List<SchemaColumn> schemaColumns, bool tableHasSelfReference )
-                {
-                    string[] columnArr = new string[schemaColumns.Count];
-                    for (int i = 0; i < schemaColumns.Count; i++)
-                    {
-                        var column = CreateColumn(schemaColumns[i], tableHasSelfReference);
-                        columnArr[i] = column;
-                    }
-                    string columns = string.Join(",\n", columnArr);
-                    return columns;
-                }
+        private string CreateColumns(List<SchemaColumn> schemaColumns )
+        {
+            string[] columnArr = new string[schemaColumns.Count];
+            for (int i = 0; i < schemaColumns.Count; i++)
+            {
+                var column = CreateColumn(schemaColumns[i]);
+                columnArr[i] = column;
+            }
+            string columns = string.Join(",\n", columnArr);
+            return columns;
+        }
 
-        private string CreateColumn(SchemaColumn schemaColumn, bool tableHasSelfReference = false)
-                 {
-                     StringBuilder createColumnStr = new StringBuilder();
-                     createColumnStr.Append($"\"{schemaColumn.Column_name}\" {schemaColumn.Data_type}");
-                     switch (schemaColumn.Data_type)
-                     {
-                         case "bit":
-                         case "varbit":
-                         case "character":
-                         case "character varying":
-                             createColumnStr.Append($"({schemaColumn.Character_maximum_length})");
-                             break;
-                         case "numeric":
-                             if (string.IsNullOrEmpty(schemaColumn.Numeric_presicion)) break;
-                             createColumnStr.Append($"({schemaColumn.Numeric_presicion},{schemaColumn.Numeric_scale})");
-                             break;
-                         case "time":
-                         case "timestamp":
-                             createColumnStr.Append($"({schemaColumn.Datetime_presicion})");
-                             break;
-                     }
-                     createColumnStr.Append($" {schemaColumn.Is_nullable}");
-                     if (!string.IsNullOrEmpty(schemaColumn.Column_default)) createColumnStr.Append($" DEFAULT {schemaColumn.Column_default}");
-                     if (schemaColumn.Is_identity == "YES" && !tableHasSelfReference) createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
-                     if (schemaColumn.Is_generated == "ALWAYS") createColumnStr.Append(CreateGeneratedStoredColumn(schemaColumn));
-                     return createColumnStr.ToString();
-                 }
+        private string CreateColumn(SchemaColumn schemaColumn)
+        {
+             StringBuilder createColumnStr = new StringBuilder();
+             createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {schemaColumn.DataType}");
+             switch (schemaColumn.DataType)
+             {
+                 case "bit":
+                 case "varbit":
+                 case "character":
+                 case "character varying":
+                     createColumnStr.Append($"({schemaColumn.CharacterMaximumLength})");
+                     break;
+                 case "numeric":
+                     if (string.IsNullOrEmpty(schemaColumn.NumericPresicion)) break;
+                     createColumnStr.Append($"({schemaColumn.NumericPresicion},{schemaColumn.NumericScale})");
+                     break;
+                 case "time":
+                 case "timestamp":
+                     createColumnStr.Append($"({schemaColumn.DatetimePresicion})");
+                     break;
+             }
+             createColumnStr.Append($" {schemaColumn.IsNullable}");
+             if (!string.IsNullOrEmpty(schemaColumn.ColumnDefault)) createColumnStr.Append($" DEFAULT {schemaColumn.ColumnDefault}");
+             if (schemaColumn.IsIdentity == "YES") createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
+             if (schemaColumn.IsGenerated == "ALWAYS") createColumnStr.Append(CreateGeneratedStoredColumn(schemaColumn));
+             return createColumnStr.ToString();
+        }
         private string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
         {
-            return $" GENERATED ALWAYS AS {schemaColumn.Generation_expression} STORED";
+            return $" GENERATED ALWAYS AS {schemaColumn.GenerationExpression} STORED";
         }
         private string CreateIdentityForColumn(SchemaColumn schemaColumn)
         {
             var identityStringBld = new StringBuilder();
             identityStringBld.Append(
-                $" GENERATED {schemaColumn.Identity_generation} AS IDENTITY " +
-                $"(INCREMENT BY {schemaColumn.Identity_increment} " +
-                $"MINVALUE {schemaColumn.Identity_minimum} " +
-                $"MAXVALUE {schemaColumn.Identity_maximum} "
+                $" GENERATED {schemaColumn.IdentityGeneration} AS IDENTITY " +
+                $"(INCREMENT BY {schemaColumn.IdentityIncrement} " +
+                $"MINVALUE {schemaColumn.IdentityMinimum} " +
+                $"MAXVALUE {schemaColumn.IdentityMaximum} "
             );
 
-            if (schemaColumn.Identity_Cycle == "YES") identityStringBld.Append("CYCLE");
+            if (schemaColumn.IdentityCycle == "YES") identityStringBld.Append("CYCLE");
 
             identityStringBld.Append(") ");
 

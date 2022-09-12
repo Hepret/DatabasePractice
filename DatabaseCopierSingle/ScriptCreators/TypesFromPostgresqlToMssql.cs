@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DatabaseCopierSingle.DatabaseTableComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators
 {
-    class TypesFromMssqltoPostgresql
+    class TypesFromPostgresqlToMssql
     {
-        public static string GetDataTypeFromPostgresqlToMssql(string dataType)
+        public static string Get (string dataType)
         {
-            switch (dataType)
+            switch (dataType.ToLower())
             {
                 case "smallint":
                     return "smallint";
@@ -44,20 +45,20 @@ namespace DatabaseCopierSingle.ScriptCreators
                 case "time":
                     return "time";
                 case "time with time zone":
-                    return "time"; // TODO transform
+                    return "time"; 
                 case "timestamp":
                     return "datetime";
                 case "timestamptz":
                 case "timestamp with time zone":
                     return "datetimeoffset";
                 case "boolean":
-                    return "bit"; // TODO transform
+                    return "bit"; 
                 case "xml":
                     return "xml";
-
-                // interval not included
+                
+                default:
+                    return dataType;
             }
-            throw new ArgumentException($"This data type: {dataType} - doesn't exist");
         }
     }
 }

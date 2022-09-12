@@ -8,13 +8,13 @@ using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
 namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreator
 {
-    public class CreatorScriptsFromSchemaPostgresqlToMssql : ICreateInsertSchemaScripts
+    public class CreatorScriptsFromSchemaMssqlToPostgresql : ICreateInsertSchemaScripts
     {
-        public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase,
-            string databaseNewName)
+        public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase, string databaseNewName)
         {
             var script = new DatabaseSchemaCreatingScript(schemaDatabase, databaseNewName)
             {
+                
                 CreateDatabaseScript = new CreateDatabaseScript(databaseNewName)
                 {
                     Script = CreateDatabase(databaseNewName)
@@ -36,18 +36,15 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
             };
             return script;
         }
-
+        
         #region Creating Database
-
         private string CreateDatabase(string databaseName)
         {
             return $"CREATE DATABASE {databaseName}";
         }
-
         #endregion
 
         #region Creating Schemas
-
         private string[] CreateSchemas(List<string> schemaDatabaseSchemas)
         {
             var createSchemasScripts = new string[schemaDatabaseSchemas.Count];
@@ -59,11 +56,8 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             return createSchemasScripts;
         }
-
         #endregion
-
-        #region Creating Sequeneces
-
+        #region Creating Sequences
         private string[] CreateSequences(List<SchemaSequence> sequences)
         {
             string[] createSequenceArr = new string[sequences.Count]; // Array of create seq commands
@@ -74,10 +68,9 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             return createSequenceArr;
         }
-
         private string CreateSequence(SchemaSequence sequence)
         {
-            var schema = sequence.SequenceSchema == "public" ? "dbo" : sequence.SequenceSchema;
+            var schema = sequence.SequenceSchema == "dbo" ? "public" : sequence.SequenceSchema;
             var createSequenceStr =
                 $"CREATE SEQUENCE \"{schema}\".\"{sequence.SequenceName}\" " +
                 $"INCREMENT BY {sequence.Increment} " +
@@ -87,11 +80,9 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             return createSequenceStr;
         }
-
         #endregion
-
+        
         #region Creating Tables
-
         private CreateTablesScripts CreateTables(List<SchemaTable> tables)
         {
             var createTablesScripts = new CreateTablesScripts(tables);
@@ -107,9 +98,9 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         
         private string CreateTable(SchemaTable table)
         {
-            string schemaCatalog = table.SchemaCatalog == "public" ? "dbo" : table.SchemaCatalog;
-            StringBuilder createTableStr =
-                new StringBuilder($"CREATE TABLE \"{schemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
+
+            var schema = table.SchemaCatalog == "dbo" ? "public" : table.SchemaCatalog;
+            StringBuilder createTableStr = new StringBuilder($"CREATE TABLE \"{schema}\".\"{table.TableName}\"\n(" + $"\n");
 
             string columns = CreateColumns(table.Columns);
             string pk = CreatePrimaryKey(table.PrimaryKey);
@@ -121,15 +112,13 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
             if (!string.IsNullOrEmpty(pk)) createTableStr.Append(pk);
             if (!string.IsNullOrEmpty(fk)) createTableStr.Append(fk);
             if (!string.IsNullOrEmpty(unique)) createTableStr.Append(unique);
-            // TODO add ability to copy check constraints
+            //TODO add ability to add check constraints 
             //if (!string.IsNullOrEmpty(checks)) createTableStr.Append(checks);
 
             createTableStr.AppendLine("\n);");
             return createTableStr.ToString();
         }
-
-        #region Creating Columns
-
+        
         private string CreateColumns(List<SchemaColumn> schemaColumns)
         {
             string[] columnArr = new string[schemaColumns.Count];
@@ -138,31 +127,25 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
                 var column = CreateColumn(schemaColumns[i]);
                 columnArr[i] = column;
             }
-
             string columns = string.Join(",\n", columnArr);
             return columns;
         }
-
+        
         private string CreateColumn(SchemaColumn schemaColumn)
         {
             StringBuilder createColumnStr = new StringBuilder();
-
-            var dataType = TypesFromPostgresqlToMssql.Get(schemaColumn.DataType);
-
-            createColumnStr.Append($"[{schemaColumn.ColumnName}] {dataType}");
-
-            if (schemaColumn.IsGenerated == "ALWAYS")
+            var dataType = TypesFromMssqlToPostgresql.Get(schemaColumn.DataType);
+            if (schemaColumn.IsGenerated == "1")
             {
                 return CreateGeneratedStoredColumn(schemaColumn);
             }
-
+            createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {dataType}");
             switch (dataType)
             {
-                case "binary":
-                case "char":
-                case "nchar":
-                case "varchar":
-                case "nvarchar":
+                case "bit":
+                case "varbit":
+                case "character":
+                case "character varying":
                     createColumnStr.Append($"({schemaColumn.CharacterMaximumLength})");
                     break;
                 case "numeric":
@@ -170,70 +153,63 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
                     createColumnStr.Append($"({schemaColumn.NumericPresicion},{schemaColumn.NumericScale})");
                     break;
                 case "time":
-                case "datetime":
-                case "datetime2":
-                case "datetimeoffset":
+                case "timestamp":
                     createColumnStr.Append($"({schemaColumn.DatetimePresicion})");
                     break;
             }
-
             createColumnStr.Append($" {schemaColumn.IsNullable}");
-            if (!string.IsNullOrEmpty(schemaColumn.ColumnDefault))
-                createColumnStr.Append($" DEFAULT {CreateDefault(schemaColumn.ColumnDefault)}");
-            if (schemaColumn.IsIdentity == "YES") createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
+            if (!string.IsNullOrEmpty(schemaColumn.ColumnDefault)) createColumnStr.Append($" DEFAULT {CreateDefault(schemaColumn.ColumnDefault)}");
+            if (schemaColumn.IsIdentity == "True" ) createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
             return createColumnStr.ToString();
-        }
-
-        private string CreateIdentityForColumn(SchemaColumn schemaColumn)
-        {
-            return $" IDENTITY " +
-                   $"({schemaColumn.IdentityStart},{schemaColumn.IdentityIncrement})";
-        }
-
-        private string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
-        {
-            return $"[{schemaColumn.ColumnName}] AS {schemaColumn.GenerationExpression}";
         }
 
         private static string CreateDefault(string schemaColumnColumnDefault)
         {
-            if (schemaColumnColumnDefault == "now()") return "GETDATE()";
+            if (schemaColumnColumnDefault == "GETDATE()") return "now()";
 
-
-            // Searching nextval('sequence_name'::regclass) 
-            const string nextValPattern = @"nextval\(\'(\w*)\'::regclass\)";
-            foreach (Match match in Regex.Matches(schemaColumnColumnDefault, nextValPattern,
-                         RegexOptions.IgnorePatternWhitespace))
+            const string pattern = @"\(NEXT\sVALUE\sFOR\s\[ (\w*) \]  \.? \[? (\w*)? \]? \)";
+            foreach (Match match in Regex.Matches(schemaColumnColumnDefault, pattern, RegexOptions.IgnorePatternWhitespace))
             {
-                var sequenceName = match.Groups[1].Value;
-                return $"NEXT VALUE FOR {sequenceName}";
-            }
+                var sequenceName = string.IsNullOrEmpty(match.Groups[2].Value)
+                    ? match.Groups[1].Value
+                    : match.Groups[2].Value;
 
-            const string castPattern = @"^\'(\w*)\'\:\:(.*)$";
-            foreach (Match match in Regex.Matches(schemaColumnColumnDefault, castPattern,
-                         RegexOptions.IgnorePatternWhitespace))
-            {
-                var value = match.Groups[1].Value;
-                var dataType = TypesFromPostgresqlToMssql.Get(match.Groups[2].Value);
-                return $"CAST({value} AS {dataType})";
+                return $"nextval('{sequenceName}'::regclass)";
             }
-
             return schemaColumnColumnDefault;
+            
+        }
+        
+        private string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
+        {
+            return $" GENERATED ALWAYS AS {schemaColumn.GenerationExpression} STORED";
+        }
+        
+        
+        private string CreateIdentityForColumn(SchemaColumn schemaColumn)
+        {
+            var identityStringBld = new StringBuilder();
+            identityStringBld.Append(
+                $" GENERATED ALWAYS AS IDENTITY " +
+                $"(INCREMENT BY {schemaColumn.IdentityIncrement} " +
+                $"START WITH  {schemaColumn.IdentityStart})"
+            );
+            return identityStringBld.ToString();
 
         }
 
         #endregion
-        
+
         #region Creating Constraints
+
         private string CreateUnique(List<UniqueConstraint> uniques)
         {
             StringBuilder uniquesCreateString = new StringBuilder();
 
-            
             foreach (var unique in uniques)
             {
-                var tmpUniques = unique.ColumnNames.Select(name => $"[{name}]");
-                string template = $",\nCONSTRAINT {unique.ConstraintName} UNIQUE({string.Join(",", tmpUniques)})";
+                var tmpUniqueNames = unique.ColumnNames.Select(name => $"\"{name}\"");
+                string template = $",\nCONSTRAINT {unique.ConstraintName} UNIQUE({string.Join(",", tmpUniqueNames)}";
                 uniquesCreateString.Append(template);
             }
             return uniquesCreateString.ToString();
@@ -258,8 +234,8 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             foreach (ForeignKey fk in foreignKeys)
             {
-                string referencedSchema = fk.ReferencedSchema == "public" ? "dbo" : fk.ReferencedSchema;
-                string template = $",\nCONSTRAINT {fk.ConstraintName} FOREIGN KEY ([{fk.ColumnName}]) REFERENCES [{referencedSchema}].[{fk.ReferencedTable}] ([{fk.ReferencedColumn}])";
+                string referencedSchema = fk.ReferencedSchema == "dbo" ? "public" : fk.ReferencedSchema;
+                string template = $",\nCONSTRAINT {fk.ConstraintName} FOREIGN KEY (\"{fk.ColumnName}\") REFERENCES \"{referencedSchema}\".\"{fk.ReferencedTable}\" (\"{fk.ReferencedColumn}\")";
                 fkString.Append(template);
             }
             return fkString.ToString();
@@ -267,18 +243,10 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         private string CreatePrimaryKey(PrimaryKey primaryKey)
         {
             if (primaryKey == null) return "";
-            var tmpColumnList = primaryKey.ColumnNames.Select(name => $"[{name}]");
-            return $",\nCONSTRAINT {primaryKey.ConstraintName} PRIMARY KEY({string.Join(",",tmpColumnList)})";
+            var tmpPrimaryKeyColumns = primaryKey.ColumnNames.Select(name => $"\"{name}\"");
+            return $",\nCONSTRAINT {primaryKey.ConstraintName} PRIMARY KEY({string.Join(",", tmpPrimaryKeyColumns)})";
         }
-        
+
         #endregion
-        
-        #endregion
-
-
-
-
-
     }
 }
-

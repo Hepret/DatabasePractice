@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Text;
 using DatabaseCopierSingle.DatabaseTableComponents;
+using DatabaseCopierSingle.DatabaseTableComponents.SchemaTableComponents;
 using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
 namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreator
 {
-    class CreatorScriptsFromSchemaMssqlToMssql : ICreateInsertSchemaScripts
+    public class CreatorScriptsFromSchemaMssqlToMssql : ICreateInsertSchemaScripts
     {
         public DatabaseSchemaCreatingScript CreateScriptsForInsertSchema(SchemaDatabase schemaDatabase, string databaseNewName)
         {
@@ -69,11 +70,11 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         private string CreateSequence(SchemaSequence sequence)
         {
             var createSequenceStr =
-                $"CREATE SEQUENCE {sequence.Sequence_name} " +
+                $"CREATE SEQUENCE {sequence.SequenceName} " +
                 $"INCREMENT BY {sequence.Increment} " +
-                $"MINVALUE {sequence.Minimum_value} " +
-                $"MAXVALUE {sequence.Maximum_value} " +
-                $"START WITH {sequence.Start_vlaue};";
+                $"MINVALUE {sequence.MinimumValue} " +
+                $"MAXVALUE {sequence.MaximumValue} " +
+                $"START WITH {sequence.LastValue};";
 
             return createSequenceStr;
         }
@@ -93,9 +94,6 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
 
             return createTablesScripts;
         }
-        
-
-        
         
         private string CreateTable(SchemaTable table)
         {
@@ -131,44 +129,44 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         private string CreateColumn(SchemaColumn schemaColumn)
         {
             StringBuilder createColumnStr = new StringBuilder();
-            createColumnStr.Append($"[{schemaColumn.Column_name}] {schemaColumn.Data_type}");
-            if (schemaColumn.Is_generated == "1")
+            createColumnStr.Append($"[{schemaColumn.ColumnName}] {schemaColumn.DataType}");
+            if (schemaColumn.IsGenerated == "1")
             {
                 return CreateGeneratedStoredColumn(schemaColumn);
             }
-            switch (schemaColumn.Data_type)
+            switch (schemaColumn.DataType)
             {
                 case "binary":
                 case "char":
                 case "nchar":
                 case "varchar":
                 case "nvarchar":
-                    createColumnStr.Append($"({schemaColumn.Character_maximum_length})");
+                    createColumnStr.Append($"({schemaColumn.CharacterMaximumLength})");
                     break;
                 case "numeric":
-                    if (string.IsNullOrEmpty(schemaColumn.Numeric_presicion)) break;
-                    createColumnStr.Append($"({schemaColumn.Numeric_presicion},{schemaColumn.Numeric_scale})");
+                    if (string.IsNullOrEmpty(schemaColumn.NumericPresicion)) break;
+                    createColumnStr.Append($"({schemaColumn.NumericPresicion},{schemaColumn.NumericScale})");
                     break;
                 case "time":
                 case "datetime":
                 case "datetime2":
                 case "datetimeoffset":
-                    createColumnStr.Append($"({schemaColumn.Datetime_presicion})");
+                    createColumnStr.Append($"({schemaColumn.DatetimePresicion})");
                     break;
             }
-            createColumnStr.Append($" {schemaColumn.Is_nullable}");
-            if (!string.IsNullOrEmpty(schemaColumn.Column_default)) createColumnStr.Append($" DEFAULT {schemaColumn.Column_default}");
-            if (schemaColumn.Is_identity == "True" ) createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
+            createColumnStr.Append($" {schemaColumn.IsNullable}");
+            if (!string.IsNullOrEmpty(schemaColumn.ColumnDefault)) createColumnStr.Append($" DEFAULT {schemaColumn.ColumnDefault}");
+            if (schemaColumn.IsIdentity == "True" ) createColumnStr.Append(CreateIdentityForColumn(schemaColumn));
             return createColumnStr.ToString();
         }
         private string CreateGeneratedStoredColumn(SchemaColumn schemaColumn)
         {
-            return $"[{schemaColumn.Column_name}] AS {schemaColumn.Generation_expression}";
+            return $"[{schemaColumn.ColumnName}] AS {schemaColumn.GenerationExpression}";
         }
         private string CreateIdentityForColumn(SchemaColumn schemaColumn)
         {
             return $" IDENTITY " +
-                $"({schemaColumn.Identity_start},{schemaColumn.Identity_increment})";
+                $"({schemaColumn.IdentityStart},{schemaColumn.IdentityIncrement})";
         }
         #endregion
 

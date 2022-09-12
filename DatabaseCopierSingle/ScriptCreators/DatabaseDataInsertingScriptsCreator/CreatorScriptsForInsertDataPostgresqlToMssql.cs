@@ -11,7 +11,7 @@ using DatabaseCopierSingle.TableDataComponents;
 
 namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreator
 {
-    public class CreatorScriptsForInsertDataPostgresqlToPostgresql : ICreateInsertDataScripts
+    public class CreatorScriptsForInsertDataPostgresqlToMssql : ICreateInsertDataScripts
     {
         public DataInsertScripts CreateInsertDataScript(DatabaseData data)
         {
@@ -37,18 +37,16 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
             return tableDataInsertScripts;
         }
-
+        
         private string CreateInsertDataIntervalIntoTableScript(SchemaTable table, DataRowInterval dataForInsert)
         {
-            
             string tableName = table.TableName;
             StringBuilder insertString = new StringBuilder();
-            
-            insertString.AppendLine($"INSERT INTO \"{table.SchemaCatalog}\".\"{tableName}\" ({ChoiceColumnsWithoutGenerated(table)})" +
-                                    "OVERRIDING SYSTEM VALUE \n" + 
-                                    $"\nVALUES");
-
-
+            var schemaCatalog = table.SchemaCatalog == "public" ? "dbo" : table.SchemaCatalog;
+            insertString.AppendLine(
+                $"SET IDENTITY_INSERT [{schemaCatalog}].[{tableName}] ON;\n" +
+                $"INSERT INTO [{schemaCatalog}].[{tableName}] ({ChoiceColumnsWithoutGenerated(table)})" +
+                $"\nVALUES");
 
             string[] stringRows = new string[dataForInsert.Count];
 
@@ -62,7 +60,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
             insertString.AppendLine(allRowsString);
             insertString.AppendLine(";");
-
+            insertString.AppendLine($"SET IDENTITY_INSERT [{schemaCatalog}].[{tableName}] OFF;\n");
             return insertString.ToString();
         }
 
@@ -74,7 +72,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             var columnsWithoutIdentity = string.Join(",", columnNames);
             return columnsWithoutIdentity;
         }
-
+        
         private string CreateRowToInsertString(TableDataRow row, SchemaTable table)
         {
             var stringRow = new List<string>();
@@ -87,61 +85,63 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             var insertRowString = "(" + string.Join(", ", stringRow) + ")";
             return insertRowString;
         }
+        
         private string CreateItemString(object item, SchemaColumn columnInfo)
         {
             var specifier = "G";
-
             if (item is DBNull) return "null";
-
-            var datatype = TypesFromMssqlToPostgresql.Get(columnInfo.DataType);
-            switch (datatype) 
+            switch (columnInfo.DataType)
             {
-                case "varchar":
-                case "character varying":
-                case "character":
                 case "char":
-                case "text": 
-                    return $"'{((string)item).Replace("'", "''")}'";
+                case "varchar":
+                case "text":
+                case "nchar":
+                case "nvarchar":
+                case "ntext":
+                    return $"'{item.ToString().Replace("'", "''")}'";
                 
-                case "smallint":
-                case "integer":
-                case "int":
+                case "bit":
+                    return bool.Parse(item.ToString()) ? "1" : "0";
+                
                 case "bigint":
+                case "int":
+                case "smallint":
                     return item.ToString();
                 
-                case "real":
                 case "numeric":
-                case "double precision":
-                    return ((double)item).ToString(specifier, CultureInfo.InvariantCulture);
                 case "decimal":
-                    return ((decimal)item).ToString(specifier, CultureInfo.InvariantCulture);
-                case "time":
-                    return "'" + ((TimeSpan)item).ToString() + "'";
+                case "money":
+                case "smallmoney":
+                    return((decimal) item).ToString(specifier, CultureInfo.InvariantCulture);
+                case "float":
+                case "real":
+                    return((double) item).ToString(specifier, CultureInfo.InvariantCulture);
+                
                 case "date":
-                {
                     var date = (DateTime) item;
                     return $"'{date.Year}-{date.Month}-{date.Day}'";
-                }
-                case "boolean":
-                    return ((int) item) == 0 ? "false" : "true";
-                case "timestamp with time zone":
-                case "timestamptz":
-                    var dateWithTimeZone = (DateTimeOffset) item;
+                case "smalldatetime":   
+                case "datetime2":
+                case "datetime":
+                    var dateTime = (DateTime) item;
                     return $"'" +
-                           $"{dateWithTimeZone.Year}-{dateWithTimeZone.Month}-{dateWithTimeZone.Day} " +
-                           $"{dateWithTimeZone.Hour}:{dateWithTimeZone.Minute}:{dateWithTimeZone.Second}:{dateWithTimeZone.Millisecond} {dateWithTimeZone.Offset}'";
-                case "timestamp without time zone":
-                    var timestamp = (DateTime) item;
-                    return
-                        $"'" +
-                        $"{timestamp.Year}-{timestamp.Month}-{timestamp.Day} " +
-                        $"{timestamp.Hour}:{timestamp.Minute}:{timestamp.Second}:{timestamp.Millisecond}";
-                case "bytea":
-                    return $"'{item}'";
+                           $"{dateTime.Year}-{dateTime.Month}-{dateTime.Day} " +
+                           $"{dateTime.Hour}:{dateTime.Minute}:{dateTime.Second}:{dateTime.Millisecond}'";
                 
+                case "datetimeoffset":
+                    var dateTimeOffset = (DateTimeOffset) item;
+                    return $"'" +
+                           $"{dateTimeOffset.Year}-{dateTimeOffset.Month}-{dateTimeOffset.Day} " +
+                           $"{dateTimeOffset.Hour}:{dateTimeOffset.Minute}:{dateTimeOffset.Second} {dateTimeOffset.Offset}'";
+                case "time":
+                    var timeSpan = (TimeSpan) item;
+                    return $"'" +
+                           $"{timeSpan.Hours}:{timeSpan.Minutes}:{timeSpan.Seconds}:{timeSpan.Milliseconds}'";
+
                 default:
                     var tmp = item.ToString();
-                    return $"'{ tmp.Replace("'", "''")}'";
+                    return $"'{tmp.Replace("'", "''")}'";
+
             }
         }
     }
