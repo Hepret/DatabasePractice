@@ -1,16 +1,14 @@
-﻿using System.Linq;
-using DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers;
+﻿using DatabaseCopierSingle.DatabaseCopiers.DatabaseDataReceivers;
 using DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers;
 using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.DatabaseTableComponents;
 using DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreator;
-using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 using DatabaseCopierSingle.ScriptCreators.ScriptsCreatorForInsertingDatabaseData;
 using DatabaseCopierSingle.TableDataComponents;
 
 namespace DatabaseCopierSingle.DatabaseCopiers
 {
-    abstract class DatabaseCopier : IDatabaseCopy
+    public abstract class DatabaseCopier : IDatabaseCopy
     {
         protected readonly DatabaseProvider ProviderFrom;
         protected readonly DatabaseProvider ProviderTo;
