@@ -1,28 +1,19 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using DatabaseCopierSingle.DatabaseCopiers;
+using DatabaseCopierSingle.DatabaseProviders.Exceptions;
 
 namespace DatabaseCopierSingle.DatabaseProviders
 {
     public abstract class DatabaseProvider
     {
-        protected readonly DbConnection Conn;
+        protected  DbConnection Conn;
 
         public string DatabaseName => Conn.Database;
 
-        protected DatabaseProvider(DbConnection connection)
-        {
-            Conn = connection;
-            try
-            {
-                Conn.Open();
-            }
-            catch (Exception e)
-            {
-                Conn.Close();
-                throw new Exception($"Can't connect to database, with connection string {Conn.ConnectionString}", e);
-            }
-        }
+        protected abstract void ValidateConnectionString(string connectionString);
+        
         public void ChangeDatabase(string databaseName)
         {
             try
