@@ -91,7 +91,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseCopiers\DatabaseCopierFactory.cs" />
     <Compile Include="DatabaseCopiers\CopyMssqlToMssql.cs" />
+    <Compile Include="DatabaseCopiers\CopyMssqlToPostgresql.cs" />
+    <Compile Include="DatabaseCopiers\CopyPostgresqlToMssql.cs" />
     <Compile Include="DatabaseCopiers\DatabaseCopier.cs" />
     <Compile Include="DatabaseCopiers\CopyPostgresqlToPostgresql.cs" />
     <Compile Include="DatabaseCopiers\DatabaseDataReceivers\DatabaseDataReceiver.cs" />
@@ -119,8 +122,12 @@
     <Compile Include="DatabaseTableComponents\SchemaSequence.cs" />
     <Compile Include="DatabaseTableComponents\SchemaTable.cs" />
     <Compile Include="DatabaseTableComponents\UniqueConstraint.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCreators\DatabaseDataInsertingScriptsCreator\CreatorScriptsForInsertDataMssqlToMssql.cs" />
+    <Compile Include="ScriptCreators\DatabaseDataInsertingScriptsCreator\CreatorScriptsForInsertDataMssqlToPostgresql.cs" />
+    <Compile Include="ScriptCreators\DatabaseDataInsertingScriptsCreator\CreatorScriptsForInsertDataPostgresqlToMssql.cs" />
+    <Compile Include="ScriptCreators\DatabaseSchemaCreatingScriptsCreator\CreatorScriptsFromSchemaMssqlToPostgresql.cs" />
     <Compile Include="ScriptCreators\ScriptForInsertData\DataInsertScripts.cs" />
     <Compile Include="ScriptCreators\ScriptForInsertData\TableDataInsertScript.cs" />
     <Compile Include="ScriptCreators\ScriptForInsertSchema\CreateDatabaseScript.cs" />
@@ -133,7 +140,8 @@
     <Compile Include="ScriptCreators\DatabaseSchemaCreatingScriptsCreator\ICreateInsertSchemaScripts.cs" />
     <Compile Include="ScriptCreators\DatabaseDataInsertingScriptsCreator\CreatorScriptsForInsertDataPostgresqlToPostgresql.cs" />
     <Compile Include="ScriptCreators\DatabaseDataInsertingScriptsCreator\ICreateInsertDataScripts.cs" />
-    <Compile Include="ScriptCreators\TypesFromMssqltoPostgresql.cs" />
+    <Compile Include="ScriptCreators\TypesFromMssqlToPostgresql.cs" />
+    <Compile Include="ScriptCreators\TypesFromPostgresqlToMssql.cs" />
     <Compile Include="TableDataComponents\DatabaseData.cs" />
     <Compile Include="TableDataComponents\TableData.cs" />
     <Compile Include="TableDataComponents\DataRowInterval.cs" />
