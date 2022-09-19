@@ -111,7 +111,8 @@
     <Compile Include="DatabaseCopiers\DatabaseSchemaInserter\IInsertDatabaseSchema.cs" />
     <Compile Include="DatabaseCopiers\IDatabaseCopy.cs" />
     <Compile Include="DatabaseProviders\DatabaseProvider.cs" />
-    <Compile Include="DatabaseProviders\Exceptions\DatabaseFailedConnectionException.cs" />
+    <Compile Include="DatabaseProviders\Exceptions\ConnectionStringFormatException.cs" />
+    <Compile Include="DatabaseProviders\Exceptions\DatabaseConnectionFailedException.cs" />
     <Compile Include="DatabaseProviders\MSSQLProvider.cs" />
     <Compile Include="DatabaseProviders\PostgresqlProvider.cs" />
     <Compile Include="DatabaseTableComponents\SchemaTableComponents\CheckConstraint.cs" />
