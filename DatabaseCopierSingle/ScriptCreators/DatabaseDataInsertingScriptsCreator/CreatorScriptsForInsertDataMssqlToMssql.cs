@@ -40,14 +40,18 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
         private string CreateInsertDataIntervalIntoTableScript(SchemaTable table, DataRowInterval dataForInsert)
         {
-            var tableHasIdentity = table.Columns.Exists(col => col.IdentityGeneration == "ALWAYS");
+            var tableHasIdentity = table.Columns.Exists(col => col.IsIdentity == "True");
             string tableName = table.TableName;
             StringBuilder insertString = new StringBuilder();
 
+            if (tableHasIdentity)
+            {
+                insertString.AppendLine($"SET IDENTITY_INSERT [{table.SchemaCatalog}].[{tableName}] ON;\n");
+            }
+
             insertString.AppendLine(
-                $"SET IDENTITY_INSERT [{table.SchemaCatalog}].[{tableName}] ON;\n" +
-                $"INSERT INTO [{table.SchemaCatalog}].[{tableName}] ({ChoiceColumnsWithoutGenerated(table)})" +
-                $"\nVALUES");
+                $"INSERT INTO [{table.SchemaCatalog}].[{tableName}] ({ChoiceColumnsWithoutGenerated(table)})\n" +
+                $"VALUES");
 
             string[] stringRows = new string[dataForInsert.Count];
 
@@ -61,7 +65,11 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
 
             insertString.AppendLine(allRowsString);
             insertString.AppendLine(";");
-            insertString.AppendLine($"SET IDENTITY_INSERT [{table.SchemaCatalog}].[{tableName}] OFF;\n");
+            if (tableHasIdentity)
+            {
+                insertString.AppendLine($"SET IDENTITY_INSERT [{table.SchemaCatalog}].[{tableName}] OFF;\n");
+            }
+            
             return insertString.ToString();
         }
 
