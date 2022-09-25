@@ -1,8 +1,11 @@
-packages/*
+packages
 .vs
-DatabaseCopierSingle/bin/*
-DatabaseCopierSingle/obj/*
+DatabaseCopierSingle/bin
+DatabaseCopierSingle/obj
 .idea
 TestDatabase
 DatabaseCopierSingle.sln.DotSettings.user
 DatabaseCopierSingle.sln.DotSettings
+DatabaseCopierUI/bin
+DatabaseCopierUI/obj
+
