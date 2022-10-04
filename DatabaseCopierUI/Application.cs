@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Runtime.InteropServices;
 using DatabaseCopierSingle.DatabaseCopiers;
 
 namespace DatabaseCopierUI
@@ -82,15 +83,29 @@ namespace DatabaseCopierUI
         }
         private static void NeedToCreateNewDatabase()
         {
-            Console.WriteLine("Enter whether to create a new database (Y/N)");
-            var userInput = Console.ReadLine();
-            while (string.IsNullOrEmpty(userInput) || (userInput.ToUpper() == "Y" || userInput.ToUpper() == "N"))
-            {
-                Console.WriteLine("Enter Y/N");
-            }
 
-            NeedToCreateDatabase = 
-                userInput.ToUpper() == "Y";
+            var userInputIsCorrect = false;
+            Console.WriteLine("Enter whether to create a new database (Y/N)");
+            
+            string userInput;
+            
+            /*for (bool uiIsCorrect = false; !uiIsCorrect; Console.WriteLine("Enter correct (Y/N)"))
+            {
+                userInput = Console.ReadLine();
+                if (userInput != null) uiIsCorrect = userInput.ToUpper() == "Y" || userInput.ToUpper() == "N";
+            }*/
+            
+            do
+            {
+                userInput = Console.ReadLine()?.ToUpper().Trim();
+                if (userInput != null) userInputIsCorrect = userInput == "Y" || userInput == "N";
+
+                if (!userInputIsCorrect) Console.Write("Enter correct (Y/N): ");
+                
+            } while (!userInputIsCorrect);
+
+            
+            NeedToCreateDatabase = userInput == "Y";
         }
 
         private static void GetDatabaseNewName()
