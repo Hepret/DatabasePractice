@@ -163,6 +163,11 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
                 case "nchar":
                 case "varchar":
                 case "nvarchar":
+                    if (schemaColumn.CharacterMaximumLength == "-1")
+                    {
+                        createColumnStr.Append($"(max)");
+                        break;
+                    }
                     createColumnStr.Append($"({schemaColumn.CharacterMaximumLength})");
                     break;
                 case "numeric":
