@@ -22,7 +22,17 @@ namespace DatabaseCopierUI
                     Console.WriteLine("##################################################");
                     exception = exception.InnerException;
                 }
+
+                Console.ReadLine();
+                return;
+
             }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Success copy");
+            Console.ResetColor();
+            
+            Console.ReadLine();
         }
     }
 }
