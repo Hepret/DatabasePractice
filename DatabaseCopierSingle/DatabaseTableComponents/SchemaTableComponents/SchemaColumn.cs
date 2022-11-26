@@ -30,5 +30,6 @@
         public string IdentityCycle { get; set; }
         public string IsGenerated { get; set; }
         public string GenerationExpression { get; set; }
+        public string UdtName { get; set; }
     }
 }
