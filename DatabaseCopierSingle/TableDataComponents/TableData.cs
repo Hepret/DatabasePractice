@@ -49,29 +49,29 @@ namespace DatabaseCopierSingle.TableDataComponents
             var isEmpty = !Data.Any();
             if (isEmpty) Data.Add(new DataRowInterval());
 
-            var length = dataInterval.Count();
-            var counter = 0; // counts how many rows have been used
-            
-            while (length != 0)
-            {
-                var lastDataInterval = Data.Last();
 
-                var freeSpace = DataRowInterval.MaxRows - lastDataInterval.Count;
-                if (length <= freeSpace)
+            IEnumerable<TableDataRow> remainingRows = dataInterval;
+            var remainingRowsAmount = dataInterval.Count(); 
+            while (remainingRowsAmount > 0)
+            {
+                var currentDataInterval = Data.Last();
+                var availablePlaces = DataRowInterval.MaxRows - currentDataInterval.Count;
+                
+                if (availablePlaces >= remainingRowsAmount)
                 {
-                    length = 0;
-                    lastDataInterval.AddRow(dataInterval.Skip(counter));
+                    currentDataInterval.AddRow(remainingRows);
+                    return;
                 }
+
                 else
                 {
+                    currentDataInterval.AddRow(remainingRows.Take(availablePlaces));
+                    remainingRowsAmount -= availablePlaces;
+                    remainingRows = remainingRows.Skip(availablePlaces);
                     Data.Add(new DataRowInterval());
-                    lastDataInterval.AddRow(dataInterval.Skip(counter).Take(freeSpace));
-                    counter += freeSpace;
                 }
 
             }
-
-
         }
         public void AddData(IEnumerable<DataRowInterval> dataIntervals)
         {
