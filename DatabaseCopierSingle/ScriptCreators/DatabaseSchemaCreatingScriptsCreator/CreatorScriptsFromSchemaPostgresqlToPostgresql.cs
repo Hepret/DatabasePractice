@@ -133,7 +133,16 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         private string CreateColumn(SchemaColumn schemaColumn)
         {
              StringBuilder createColumnStr = new StringBuilder();
-             createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {schemaColumn.DataType}");
+
+             if (schemaColumn.DataType == "ARRAY")
+             {
+                 createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {schemaColumn.UdtName}");
+             }
+
+             else
+             {
+                 createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {schemaColumn.DataType}");
+             }
              switch (schemaColumn.DataType)
              {
                  case "bit":
@@ -150,6 +159,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
                  case "timestamp":
                      createColumnStr.Append($"({schemaColumn.DatetimePresicion})");
                      break;
+
              }
              createColumnStr.Append($" {schemaColumn.IsNullable}");
              if (!string.IsNullOrEmpty(schemaColumn.ColumnDefault)) createColumnStr.Append($" DEFAULT {schemaColumn.ColumnDefault}");
