@@ -334,7 +334,8 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
                IdentityMinimum = reader[39].ToString(),
                IdentityCycle = reader[40].ToString(),
                IsGenerated = reader[41].ToString(),
-               GenerationExpression = reader[42].ToString()
+               GenerationExpression = reader[42].ToString(),
+               UdtName = reader[27].ToString()
            };
            return column;
        }
