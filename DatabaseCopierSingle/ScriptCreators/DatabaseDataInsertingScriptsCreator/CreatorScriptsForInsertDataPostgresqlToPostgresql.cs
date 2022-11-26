@@ -87,13 +87,134 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             var insertRowString = "(" + string.Join(", ", stringRow) + ")";
             return insertRowString;
         }
+
         private string CreateItemString(object item, SchemaColumn columnInfo)
         {
-            var specifier = "G";
-
+            
             if (item is DBNull) return "null";
+            
+            var datatype = columnInfo.UdtName;
+            
+            var datatypeIsArray = datatype[0] == '_';
+            
+            if (datatypeIsArray)
+            {
+                return GetItemStringForArray(item, datatype);
+            }
 
-            var datatype = TypesFromMssqlToPostgresql.Get(columnInfo.DataType);
+            else
+            {
+                return GetItemString(item, datatype);
+            }
+            
+        }
+
+        private string GetItemStringForArray(object item, string datatype)
+        {
+            var cellStringBuilder = new StringBuilder();
+            datatype = datatype.Substring(1);
+            cellStringBuilder.Append("ARRAY[");
+
+            string[] arrayItems = new string[]{};
+            
+            switch (item)
+            {
+                case int[] arrayInts:
+                    arrayItems = new string[arrayInts.Length];
+                    for (int i = 0; i < arrayInts.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayInts[i], datatype);
+                    }
+                    break;
+                case short[] arrayShorts:
+                    arrayItems = new string[arrayShorts.Length];
+                    for (int i = 0; i < arrayShorts.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayShorts[i], datatype);
+                    }
+                    break;
+                case long[] arrayBigints:
+                    arrayItems = new string[arrayBigints.Length];
+                    for (int i = 0; i < arrayBigints.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayBigints[i], datatype);
+                    }
+                    break;
+                case char[] arrayChars:
+                    arrayItems = new string[arrayChars.Length];
+                    for (int i = 0; i < arrayChars.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayChars[i], datatype);
+                    }
+                    break;
+                case string[] arrayStrings:
+                    arrayItems = new string[arrayStrings.Length];
+                    for (int i = 0; i < arrayStrings.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayStrings[i], datatype);
+                    }
+                    break;
+                
+                case TimeSpan[] arrayTimeSpans:
+                    arrayItems = new string[arrayTimeSpans.Length];
+                    for (int i = 0; i < arrayTimeSpans.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayTimeSpans[i], datatype);
+                    }
+                    break;
+                case DateTime[] arrayDateTimes:
+                    arrayItems = new string[arrayDateTimes.Length];
+                    for (int i = 0; i < arrayDateTimes.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayDateTimes[i], datatype);
+                    }
+                    break;
+                case bool[] arrayBools:
+                    arrayItems = new string[arrayBools.Length];
+                    for (int i = 0; i < arrayBools.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayBools[i], datatype);
+                    }
+                    break;
+                case double[] arrayDoubles:
+                    arrayItems = new string[arrayDoubles.Length];
+                    for (int i = 0; i < arrayDoubles.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayDoubles[i], datatype);
+                    }
+                    break;
+                case float[] arrayFloats:
+                    arrayItems = new string[arrayFloats.Length];
+                    for (int i = 0; i < arrayFloats.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayFloats[i], datatype);
+                    }
+                    break;
+                case decimal[] arrayDecimals:
+                    arrayItems = new string[arrayDecimals.Length];
+                    for (int i = 0; i < arrayDecimals.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayDecimals[i], datatype);
+                    }
+                    break;
+                case  object[] arrayObjects:
+                    arrayItems = new string[arrayObjects.Length];
+                    for (int i = 0; i < arrayObjects.Length; i++)
+                    {
+                        arrayItems[i] = GetItemString(arrayObjects[i], datatype);
+                    }
+                    break;
+            }
+
+            cellStringBuilder.Append(String.Join(",",arrayItems));
+            cellStringBuilder.Append("]");
+            var resString = cellStringBuilder.ToString();
+            return resString;
+        }
+
+        private string GetItemString(object item, string datatype)
+        {
+            var specifier = "G";
             switch (datatype) 
             {
                 case "varchar":
@@ -104,15 +225,21 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
                     return $"'{((string)item).Replace("'", "''")}'";
                 
                 case "smallint":
+                case "int2":
+                case "int4":
+                case "int8":
                 case "integer":
                 case "int":
                 case "bigint":
                     return item.ToString();
                 
                 case "real":
+                case "float":
+                case "float8":
+                case "float4":
                 case "numeric":
                 case "double precision":
-                    return ((double)item).ToString(specifier, CultureInfo.InvariantCulture);
+                    return double.Parse(item.ToString()).ToString(specifier, CultureInfo.InvariantCulture);
                 case "decimal":
                     return ((decimal)item).ToString(specifier, CultureInfo.InvariantCulture);
                 case "time":
@@ -123,19 +250,17 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
                     return $"'{date.Year}-{date.Month}-{date.Day}'";
                 }
                 case "boolean":
-                    return ((int) item) == 0 ? "false" : "true";
+                case "bool":
+                    return (bool) item ? "false" : "true";
                 case "timestamp with time zone":
+                case "timestamp":
                 case "timestamptz":
-                    var dateWithTimeZone = (DateTimeOffset) item;
-                    return $"'" +
-                           $"{dateWithTimeZone.Year}-{dateWithTimeZone.Month}-{dateWithTimeZone.Day} " +
-                           $"{dateWithTimeZone.Hour}:{dateWithTimeZone.Minute}:{dateWithTimeZone.Second}:{dateWithTimeZone.Millisecond} {dateWithTimeZone.Offset}'";
                 case "timestamp without time zone":
                     var timestamp = (DateTime) item;
                     return
                         $"'" +
                         $"{timestamp.Year}-{timestamp.Month}-{timestamp.Day} " +
-                        $"{timestamp.Hour}:{timestamp.Minute}:{timestamp.Second}:{timestamp.Millisecond}";
+                        $"{timestamp.Hour}:{timestamp.Minute}:{timestamp.Second}'";
                 case "bytea":
                     return $"'{item}'";
                 
