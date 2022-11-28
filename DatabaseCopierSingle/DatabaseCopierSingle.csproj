@@ -115,6 +115,7 @@
     <Compile Include="DatabaseProviders\Exceptions\DatabaseConnectionFailedException.cs" />
     <Compile Include="DatabaseProviders\MSSQLProvider.cs" />
     <Compile Include="DatabaseProviders\PostgresqlProvider.cs" />
+    <Compile Include="DatabaseTableComponents\DatabaseExtension.cs" />
     <Compile Include="DatabaseTableComponents\SchemaTableComponents\CheckConstraint.cs" />
     <Compile Include="DatabaseTableComponents\SchemaTableComponents\ForeignKey.cs" />
     <Compile Include="DatabaseTableComponents\SchemaTableComponents\FullTableName.cs" />
