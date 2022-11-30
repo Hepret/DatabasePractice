@@ -23,20 +23,25 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
             private set => _tables = value; 
         }
 
+        public List<DatabaseExtension> Extensions { get; set; }
+
         private bool _tablesAreOrdered;
 
         public SchemaDatabase()
         {
+            Extensions = new List<DatabaseExtension>();
             Tables = new List<SchemaTable>();
             Sequences = new List<SchemaSequence>();
             Schemas = new List<string>();
         }
-        public SchemaDatabase(string databaseName, List<SchemaTable> tables, List<SchemaSequence> sequences, List<string> schemas)
+        public SchemaDatabase(string databaseName, List<SchemaTable> tables, List<SchemaSequence> sequences,
+            List<string> schemas, List<DatabaseExtension> extension)
         {
             DatabaseName = databaseName;
             Tables = tables;
             Schemas = schemas;
             Sequences = sequences;
+            Extensions = extension;
         }
         public List<SchemaSequence> Sequences { get; private set; }
         internal void AddSequence(SchemaSequence sequence) => Sequences.Add(sequence);
@@ -52,6 +57,7 @@ namespace DatabaseCopierSingle.DatabaseTableComponents
 
         public void AddSchema(string schemaName) => Schemas.Add(schemaName);
         public void AddSchemas(IEnumerable<string> schemaNames) => Schemas.AddRange(schemaNames);
+        public void AddExtension(DatabaseExtension extension) => Extensions.Add(extension);
         
         public void AddTable(SchemaTable table)
         {
