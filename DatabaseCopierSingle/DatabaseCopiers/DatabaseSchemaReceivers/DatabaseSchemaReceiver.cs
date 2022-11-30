@@ -23,18 +23,25 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
                 var schemasNames = GetSchemasNames();
                 var tables = GetTables();
                 var sequences = GetSequences();
+                var extensions = GetDatabaseExtensions();
                 SchemaDatabase schema = new SchemaDatabase(
                     schemas: schemasNames,
                     databaseName: Provider.DatabaseName,
                     tables: tables,
-                    sequences: sequences
-                    ) ; 
+                    sequences: sequences,
+                    extension: extensions
+                ); 
                 return schema;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Can't get schema: {Provider.DatabaseName}", ex);
             }
+        }
+
+        protected virtual List<DatabaseExtension> GetDatabaseExtensions()
+        {
+            return new List<DatabaseExtension>();
         }
         protected abstract List<string> GetSchemasNames();
         private List<SchemaTable> GetTables()

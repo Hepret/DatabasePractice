@@ -42,6 +42,34 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
             }
         }
 
+        protected override List<DatabaseExtension> GetDatabaseExtensions()
+        {
+            try
+            {
+                string queryString =
+                    "SELECT extname\n" +
+                    "FROM pg_extension;";
+                var extensions = new List<DatabaseExtension>();
+
+                using (var reader = Provider.GetDataReader(queryString))
+                {
+                    while (reader.Read())
+                    {
+                        extensions.Add(new DatabaseExtension()
+                        {
+                            Name = reader[0].ToString()
+                        });
+                    }
+                }
+                
+                return extensions;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Can't get extensions", ex);
+            }   
+        }
+
         protected override List<SchemaSequence> GetSequences()
         {
             try
@@ -347,7 +375,8 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaReceivers
                "SELECT \"table_schema\", \"table_name\"\n" +
                "FROM \"information_schema\".\"tables\"\n" +
                "WHERE \"table_schema\" != 'pg_catalog'\n" +
-               "    and \"table_schema\" != 'information_schema';";
+               "    AND \"table_schema\" != 'information_schema'" +
+               "    AND \"table_type\" = 'BASE TABLE'";
            var tableNames = new List<FullTableName>();
            using (var reader = Provider.GetDataReader(queryString))
            {
