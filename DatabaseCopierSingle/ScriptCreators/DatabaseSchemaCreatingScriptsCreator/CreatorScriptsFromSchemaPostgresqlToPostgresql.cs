@@ -17,6 +17,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
                 {
                     Script = CreateDatabase(databaseNewName)
                 },
+                CreateExtensionScript = CreateExtensions(schemaDatabase.Extensions),
                 CreateSchemasScripts = CreateSchemas(schemaDatabase.Schemas),
                 CreateSequencesScripts = CreateSequences(schemaDatabase.Sequences),
                 CreateTablesScripts = CreateTables(schemaDatabase.Tables)
@@ -30,9 +31,26 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
             {
                 CreateSchemasScripts = CreateSchemas(schemaDatabase.Schemas),
                 CreateSequencesScripts = CreateSequences(schemaDatabase.Sequences),
-                CreateTablesScripts = CreateTables(schemaDatabase.Tables)
+                CreateTablesScripts = CreateTables(schemaDatabase.Tables),
+                CreateExtensionScript = CreateExtensions(schemaDatabase.Extensions)
             };
             return script;
+        }
+
+        private string[] CreateExtensions(List<DatabaseExtension> extensions)
+        {
+            var scripts = new string[extensions.Count];
+            for (int i = 0; i < extensions.Count; i++)
+            {
+                scripts[i] = CreateExtension(extensions[i]);
+            }
+
+            return scripts;
+        }
+
+        private string CreateExtension(DatabaseExtension extension)
+        {
+            return $"CREATE EXTENSION IF NOT EXISTS {extension.Name};";
         }
 
         #region Creating Database
@@ -98,7 +116,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
         
         private string CreateTable(SchemaTable table)
         {
-            StringBuilder createTableStr = new StringBuilder($"CREATE TABLE \"{table.SchemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
+            StringBuilder createTableStr = new StringBuilder($"CREATE TABLE IF NOT EXISTS \"{table.SchemaCatalog}\".\"{table.TableName}\"\n(" + $"\n");
 
             string columns = CreateColumns(table.Columns);
             string pk = CreatePrimaryKey(table.PrimaryKey);
@@ -138,7 +156,10 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseSchemaCreatingScriptsCreat
              {
                  createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {schemaColumn.UdtName}");
              }
-
+             else if (schemaColumn.DataType == "USER-DEFINED")
+             {
+                 createColumnStr.Append($"\"{schemaColumn.ColumnName}\" \"public\".{schemaColumn.UdtName}");
+             }
              else
              {
                  createColumnStr.Append($"\"{schemaColumn.ColumnName}\" {schemaColumn.DataType}");

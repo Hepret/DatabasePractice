@@ -9,7 +9,7 @@ namespace DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema
     public class CreateTablesScripts : IEnumerable<CreateTableScript>
     {
         private readonly List<SchemaTable> _tables;
-        private CreateTableScript[] Scripts { get;}
+        public CreateTableScript[] Scripts { get;}
 
         public int Count => Scripts.Length;
 
