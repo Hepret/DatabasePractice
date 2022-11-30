@@ -1,4 +1,5 @@
-﻿using DatabaseCopierSingle.DatabaseProviders;
+﻿using System;
+using DatabaseCopierSingle.DatabaseProviders;
 using DatabaseCopierSingle.ScriptCreators.ScriptForInsertSchema;
 
 namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
@@ -19,11 +20,21 @@ namespace DatabaseCopierSingle.DatabaseCopiers.DatabaseSchemaInserter
         public void SetSchema(DatabaseSchemaCreatingScript databaseSchemaCreatingScript)
         {
             CreateDatabase(databaseSchemaCreatingScript.CreateDatabaseScript);
+            CreateExtensions(databaseSchemaCreatingScript.CreateExtensionScript);
             CreateSchemas(databaseSchemaCreatingScript.CreateSchemasScripts);
             CreateSequences(databaseSchemaCreatingScript.CreateSequencesScripts);
             CreateTables(databaseSchemaCreatingScript.CreateTablesScripts);
         }
-        
+
+        private void CreateExtensions(string[] createExtensionScripts)
+        {
+            if (createExtensionScripts == null) return;
+            foreach (var createExtensionScript in createExtensionScripts)
+            {
+                _provider.ExecuteCommand(createExtensionScript);
+            }
+        }
+
         private void CreateTables(CreateTablesScripts createTablesScripts)
         {
             foreach (CreateTableScript createTableScripts in createTablesScripts)

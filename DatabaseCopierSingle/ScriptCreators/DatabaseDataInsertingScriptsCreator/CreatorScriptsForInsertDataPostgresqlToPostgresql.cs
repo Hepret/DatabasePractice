@@ -47,8 +47,8 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             insertString.AppendLine($"INSERT INTO \"{table.SchemaCatalog}\".\"{tableName}\" ({ChoiceColumnsWithoutGenerated(table)})" +
                                     "OVERRIDING SYSTEM VALUE \n" + 
                                     $"\nVALUES");
-
-
+            
+            
 
             string[] stringRows = new string[dataForInsert.Count];
 
@@ -61,7 +61,7 @@ namespace DatabaseCopierSingle.ScriptCreators.DatabaseDataInsertingScriptsCreato
             var allRowsString = string.Join(",\n", stringRows);
 
             insertString.AppendLine(allRowsString);
-            insertString.AppendLine(";");
+            insertString.AppendLine("ON CONFLICT DO NOTHING;");
 
             return insertString.ToString();
         }
